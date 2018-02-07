@@ -1,0 +1,69 @@
+//
+//  sb_macros_README
+//  
+//
+//  Created by Yeon-jae Jwa on 8/17/17.
+//
+//
+
+1. detector.h, functions.c, params.h, genie_tau_test.c, do not need to be changed unless necessary.
+
+
+2. Genie events gst files are in gst0to40 directory. (Generated within )0 to 40 GeV beam energy).
+
+
+3. In order to run/generate nue appearance channel CC histograms, go into 'genie_CC.c' and adjust input gst file then you can do
+
+
+root -l
+.L genie_CC.c
+genie_study()
+MARK: now run_all_genie_study(); This runs all CC and NC nue backgrounds
+
+
+This will generate a output file in /gst0to40/out directory
+
+4. In order to run/generate nue appearance channel NC histograms, go into 'genie_CC.c' and adjust input gst file then you can do
+
+root -l
+.L genie_CC.c
+genie_NC()
+
+This will generate a output file in /gst0to40/out directory
+
+
+
+
+
+5. In order to run/generate numu dis. channel CC & NC histograms, go into 'genie_mu.c' and adjust input gst file then you can do
+
+
+root -l
+.L genie_mu.c
+genie_mu()
+
+This will generate a output file in /gst0to40/out directory
+
+
+
+6. For stacked histograms, go into 'plotfunctions.c', stack_study() is supposed to spit out nue channel stack, stack_mu() is supposed to spit out numu channel stack.
+
+
+By running,
+
+
+root -l
+.L plotfunctions.c
+stack_study() or stack_mu()
+
+
+You will get a TCanvas.
+
+6.1 Histograms are supposed to be normalized properly with respect to their event rates and generated # of events. The normalization factors in 'plotfunctions.c' are regarding 10k genie events. Thus if you are using 50k size gst, the factor should be divided by 5. stack_study() and stack_mu() should be already taking care of this.
+
+
+
+
+
+
+
