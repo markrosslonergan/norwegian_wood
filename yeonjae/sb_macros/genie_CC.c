@@ -74,6 +74,7 @@ void genie_study(TString filename){
 
 	TFile *fnew = new TFile(TString("../gst0to40/out/")+filename+TString("_study_out.root"),"recreate");
 
+	//Fullosc sample is taken from the numu flux ran through GENIE as a nue beam
 	bool isfullosc=false;
 	if(filename == "gntp.0.numuflux_nuebeam50k_gst" || filename == "gntp.0.numubarflux_nuebarbeam50k_gst"){
 		isfullosc=true;
