@@ -4,6 +4,7 @@
 <mode name="nu" use="1"/>
 
 <detector name="dune" use="1" />
+<detector name="near" use="1" />
 
 <channel name="elike" use="1" numbins="80">
 		<bins 

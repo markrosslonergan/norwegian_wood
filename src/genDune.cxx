@@ -1,7 +1,6 @@
 #include "genDune.h"
 
 bool genDUNE::eventSelection(int file){
-
 	return true;
 }
 
@@ -19,24 +18,22 @@ int genDUNE::fillHistograms(int file, int uni, double wei){
 	double Enu_true = *vmapD[file]["Etrue"];
 	double Enu_reco =  *vmapD[file]["Ereco"];
 	double weight = *vmapD[file]["Weight"];
-
 	int nutype = *vmapI[file]["NuType"];
 
-	double oscprob = prob->probabilityMatterExact(2, 2 ,Enu_true, 1300);
-//	std::cout<<Enu_true<<" "<<Enu_reco<<" on file: "<<multisim_name.at(file)<<" "<<nutype<<" PROB: "<<oscprob<<std::endl;
-//	std::cout<<"Map Hist: "<<map_hist[multisim_name.at(file)]<<std::endl;
-	
-	hist.at(map_hist[multisim_name.at(file)]).Fill(Enu_reco, oscprob);
 	//write a map for osc patterns 
-	//SetUp such that I can load an SBNprob and it will oscillate. Gonna guess that it probable will take a while
 
+	double oscprob = prob->probabilityMatterExact(2, 2 ,Enu_true, 1300);
+	//std::cout<<Enu_true<<" "<<Enu_reco<<" on file: "<<multisim_name.at(file)<<" "<<nutype<<" PROB: "<<oscprob<<std::endl;
+	//std::cout<<"Map Hist: "<<map_hist[multisim_name.at(file)]<<std::endl;
 	
+	//std::cout<<multisim_name.at(file)<<" "<<near_detector_names.at(file)<<std::endl;
+	hist.at(map_hist[multisim_name.at(file)]).Fill(Enu_reco, oscprob*weight*far_detector_weight);
+	hist.at(map_hist[near_detector_names.at(file)]).Fill(Enu_reco, oscprob*weight*near_detector_weight);
 
 	return 0;
 }
 
 int genDUNE::tidyHistograms(){
-
 	return 0;
 }
 
