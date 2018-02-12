@@ -19,12 +19,14 @@ include(${ROOT_USE_FILE})
 
 set (SBNLIB $ENV{SBNFITDIR})
 
+link_directories(${SBNLIB}/build/tinyxml)
+link_directories(${SBNLIB}/build/src)
+
+
 include_directories("${PROJECT_BINARY_DIR}")
 include_directories(${SBNLIB}/inc)
 include_directories(${SBNLIB}/tinyxml)
-
-link_directories(${SBNLIB}/build/tinyxml)
-link_directories(${SBNLIB}/build/src)
+include_directories(inc)
 
 add_subdirectory(src)
 

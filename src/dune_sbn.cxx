@@ -33,6 +33,10 @@
 #include "SBNfit.h"
 #include "SBNfit3pN.h"
 
+
+
+#include "genDune.h"
+
 #define no_argument 0
 #define required_argument 1
 #define optional_argument 2
@@ -100,12 +104,20 @@ int main(int argc, char* argv[])
 
 	}
 
-	SBNspec * dune_spec = new SBNspec("~/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_bf"  , xml);
-	dune_spec->writeOut("dune_test.root");
+	//SBNspec * dune_spec = new SBNspec("~/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_bf"  , xml);
+	//dune_spec->writeOut("dune_test.root");
 
 
+	genDUNE testGen(xml);
 
+	std::ostringstream out;
+	out << std::fixed;
+	out << std::setprecision(2);
 
+	testGen.doMC("gentest");
+	testGen.writeOut("out.root");
+
+return 0;
 }
 
 
