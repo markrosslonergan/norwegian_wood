@@ -32,10 +32,15 @@ class genDUNE : public sbn::SBgeN {
 				}
 				std::string near_name = "nu_near_"+breakdown_filename.at(2)+"_"+breakdown_filename.at(3);
 				near_detector_names.push_back(near_name);
+
+				std::pair<int,int> osc_pattern = getOscPattern(multisim_name.at(i));
+				oscillation_patterns.push_back(osc_pattern);
+
 			}
 		}
 
 		std::vector<std::string> near_detector_names;
+		std::vector<std::pair<int,int>> oscillation_patterns;
 
 		double near_detector_weight;
 		double far_detector_weight;
@@ -44,7 +49,8 @@ class genDUNE : public sbn::SBgeN {
 		int fillHistograms(int file, int uni, double wei);
 		int tidyHistograms();
 		~genDUNE(){};
-
+	
+		std::pair<int,int> getOscPattern(std::string name);
 
 };
 #endif
