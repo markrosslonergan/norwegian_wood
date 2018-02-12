@@ -1,0 +1,4 @@
+TODO:
+	(1) Get scaling for DUNE far detector and near detector (set them in inc/genDUNE.h)
+	(2) Transcribe the known oscillation channels into the xml/dune.xml osc_patterns
+	

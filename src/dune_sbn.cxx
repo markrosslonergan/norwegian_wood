@@ -109,10 +109,22 @@ int main(int argc, char* argv[])
 
 
 	genDUNE testGen(xml);
-
 	std::ostringstream out;
 	out << std::fixed;
 	out << std::setprecision(2);
+
+	double degree = 3.14159/180.0;
+	//in this order	 		12 	23 	13	14 24 34	
+	std::vector<double> angles = {30*degree, 44*degree, 8*degree,15*degree, 10*degree, 20*degree};
+	//in this order 	     d13 dm24 dm34
+	std::vector<double> phases = {0,0,0};
+	//in this order 	     dm21 dm31 dm41 in eV^2
+	std::vector<double> mass_splittings = {7.5*pow(10,-5),2.552*pow(10,-3),1.0};
+
+	testGen.prob->setParameters(angles,phases,mass_splittings);
+	testGen.prob->init();
+
+
 
 	testGen.doMC("gentest");
 	testGen.writeOut("out.root");
