@@ -22,10 +22,15 @@ int genDUNE::fillHistograms(int file, int uni, double wei){
 
 	int nutype = *vmapI[file]["NuType"];
 
-//	std::cout<<Enu_true<<" "<<Enu_reco<<" on file: "<<multisim_name.at(file)<<" "<<nutype<<std::endl;
+	double oscprob = prob->probabilityMatterExact(2, 2 ,Enu_true, 1300);
+//	std::cout<<Enu_true<<" "<<Enu_reco<<" on file: "<<multisim_name.at(file)<<" "<<nutype<<" PROB: "<<oscprob<<std::endl;
 //	std::cout<<"Map Hist: "<<map_hist[multisim_name.at(file)]<<std::endl;
 	
-	hist.at(map_hist[multisim_name.at(file)]).Fill(Enu_reco);
+	hist.at(map_hist[multisim_name.at(file)]).Fill(Enu_reco, oscprob);
+	//write a map for osc patterns 
+	//SetUp such that I can load an SBNprob and it will oscillate. Gonna guess that it probable will take a while
+
+	
 
 	return 0;
 }
