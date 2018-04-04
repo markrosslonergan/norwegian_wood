@@ -19,6 +19,16 @@
 
 root -l
 .L genie_CC.c
+run_all_genie_study();
+
+
+
+
+
+
+
+root -l
+.L genie_CC.c
 genie_study()
 MARK: now run_all_genie_study(); This runs all CC and NC nue backgrounds
 

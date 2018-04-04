@@ -12,7 +12,7 @@ class genDUNE : public sbn::SBgeN {
 		genDUNE(std::string xmlname):SBgeN(xmlname){
 			prob = new sbn::SBNprob(4);
 		
-			near_detector_weight = 5.0;
+			near_detector_weight = 10.0;
 			far_detector_weight = 1.0;
 
 			for(int i = 0; i < multisim_name.size(); i++){
@@ -39,6 +39,14 @@ class genDUNE : public sbn::SBgeN {
 			}
 		}
 
+		std::vector<std::vector<std::vector<double>>> precalc_prob_far;
+		std::vector<std::vector<std::vector<double>>> precalc_prob_near;
+	
+		double interpolate_prob_far(int a, int b, double enu);
+		double interpolate_prob_near(int a, int b, double enu);
+		int preCalculateProbs();
+
+
 		std::vector<std::string> near_detector_names;
 		std::vector<std::pair<int,int>> oscillation_patterns;
 
@@ -51,6 +59,7 @@ class genDUNE : public sbn::SBgeN {
 		~genDUNE(){};
 	
 		std::pair<int,int> getOscPattern(std::string name);
+		double lin_interp(double ein, double p1, double e1, double p2, double e2);
 
 };
 #endif

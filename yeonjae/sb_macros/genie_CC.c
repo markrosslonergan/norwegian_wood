@@ -22,8 +22,9 @@
 
 #include "detector.h"
 
-
 #include "TString.h"
+
+#include "norm.h"
 
 struct myphoton{
 	TLorentzVector lorentz;
@@ -44,8 +45,9 @@ struct myphoton{
 
 //genie_CC
 
-
-void genie_study(TString filename){
+// 0 = FHC
+// 1 = BHC
+void genie_study(TString filename, int nu_mode){
 
 	//want to try osc. + weak decay of tau.
 
@@ -72,6 +74,10 @@ void genie_study(TString filename){
 	TFile *f = new TFile(TString("../gst0to40/")+filename+TString(".root"));
 	TTree *gstree = (TTree*)f->Get("gst");
 
+	//given that gsttree gets the POT scaling
+	double POT_norm = get_normalization(filename);
+	std::cout<<"POT Normalization: "<<filename<<" "<<POT_norm<<std::endl;
+
 	TFile *fnew = new TFile(TString("../gst0to40/out/")+filename+TString("_study_out.root"),"recreate");
 
 	//Fullosc sample is taken from the numu flux ran through GENIE as a nue beam
@@ -82,7 +88,15 @@ void genie_study(TString filename){
 
 	TFile * fntuple = new TFile("DUNE_ntuple.root","UPDATE");
 
-	std::vector<std::string> subchannels = {"nu_dune_elike_fullosc", "nu_dune_elike_intrinsic" , "nu_dune_elike_mumisid", "nu_dune_elike_taumisid"};
+
+	std::vector<std::string> subchannels ;
+	if(nu_mode == 0){ 
+		subchannels=	{"nu_dune_elike_fullosc", "nu_dune_elike_intrinsic" , "nu_dune_elike_mumisid", "nu_dune_elike_taumisid"};
+	} else if(nu_mode ==1){
+		subchannels=	{"nubar_dune_elike_fullosc", "nubar_dune_elike_intrinsic" , "nubar_dune_elike_mumisid", "nubar_dune_elike_taumisid"};
+	}
+
+
 	std::vector<TTree*> list_o_trees;
 
 	double m_Ereco=0;
@@ -342,7 +356,7 @@ void genie_study(TString filename){
 
 
 		//Nrevertex. for stats.
-		int Nrevertex = 25;
+		int Nrevertex = 1;
 		for(int k=0;k<Nrevertex; k++){
 
 			double vertex_weight = 1.0/((double) Nrevertex);
@@ -548,7 +562,7 @@ void genie_study(TString filename){
 					m_Ereco = reco_E;
 					m_Etrue = Ev;
 					m_l = 1300 ;	
-					m_weight = cc_efficiency*vertex_weight;
+					m_weight = cc_efficiency*vertex_weight*POT_norm;
 					m_nutype = neu;
 					//std::cout<<"NCC: "<<m_Ereco<<" "<<m_Etrue<<" "<<m_l<<" "<<m_weight<<" "<<m_nutype<<std::endl;
 			
@@ -665,7 +679,7 @@ void genie_study(TString filename){
 					m_Ereco = reco_E;
 					m_Etrue = Ev;
 					m_l = 1300 ;	
-					m_weight = cc_efficiency*vertex_weight*egamma_misidrate;
+					m_weight = cc_efficiency*vertex_weight*egamma_misidrate*POT_norm;
 					m_nutype = neu;
 					//std::cout<<"NCC: "<<m_Ereco<<" "<<m_Etrue<<" "<<m_l<<" "<<m_weight<<" "<<m_nutype<<std::endl;
 	
@@ -754,7 +768,7 @@ void genie_study(TString filename){
 					m_Ereco = reco_E;
 					m_Etrue = Ev;
 					m_l = 1300 ;	
-					m_weight = cc_efficiency*vertex_weight*0.1783;
+					m_weight = cc_efficiency*vertex_weight*0.1783*POT_norm;
 					m_nutype = neu;
 					//std::cout<<"NCC: "<<m_Ereco<<" "<<m_Etrue<<" "<<m_l<<" "<<m_weight<<" "<<m_nutype<<std::endl;
 					if(!isfullosc)	list_o_trees.at(3)->Fill();
@@ -802,6 +816,7 @@ void genie_CC_slimmed(){
 
 	TString filename = "gntp.0.nutau20k_gst";
 
+	double POT_norm = get_normalization(filename);
 
 	TFile *f = new TFile(filename+TString(".root"));
 	TTree *gstree = (TTree*)f->Get("gst");
@@ -1700,6 +1715,7 @@ void genie_CC(){
 	TRandom3 *rangen = new TRandom3(0);
 
 
+	double POT_norm = 1.0;//get_normalization(filename);
 	TFile *f = new TFile("gntp.0.gst_nue.root");
 	TTree *gstree = (TTree*)f->Get("gst");
 
@@ -2761,9 +2777,10 @@ void genie_CC(){
 }
 
 
-void genie_NC(TString filename){
+void genie_NC(TString filename, int nu_mode){
 
 
+	double POT_norm = get_normalization(filename);
 
 	/*"The signal for nue apperance is an excess of charged-current(CC) nue and nuebar interactions over the expected background in the far detector. The background to nue appearance is composed of : (1) CC interactions of nue and nuebar intrinsic to the beam; (2) misidentified numu and numubar CC events; (3) neutral current (NC) backgrounds and (4) nutau and nutaubar CC events in which the tau's decay leptonically into electrons/positrons. NC and nutau backgrounds are due to interactions of higher-energy neutrinos but they contribute to backgrounds mainly at low energy, which is important for the sensitivity to CP violation."*/
 
@@ -2790,7 +2807,14 @@ void genie_NC(TString filename){
 
 
 
-	std::vector<std::string> subchannels = {"nu_dune_elike_ncmisid"};
+	std::vector<std::string> subchannels;
+	if(nu_mode ==0){
+		subchannels = {"nu_dune_elike_ncmisid"};
+	} else if(nu_mode==1){
+		subchannels = {"nubar_dune_elike_ncmisid"};
+	}
+
+
 	std::vector<TTree*> list_o_trees;
 
 	double m_Ereco=0;
@@ -3356,7 +3380,7 @@ void genie_NC(TString filename){
 					m_Ereco = background_photons.at(0).lorentz.E()+Ehad;
 					m_Etrue = Ev;
 					m_l = 1300 ;	
-					m_weight = egamma_misidrate*vertex_weight;
+					m_weight = egamma_misidrate*vertex_weight*POT_norm;
 					m_nutype = neu;
 					//std::cout<<"NCC: "<<m_Ereco<<" "<<m_Etrue<<" "<<m_l<<" "<<m_weight<<" "<<m_nutype<<std::endl;
 					list_o_trees.at(0)->Fill();
@@ -3400,48 +3424,95 @@ void run_all_genie_study(){
 	TString numubar_nuebarbeam = "gntp.0.numubarflux_nuebarbeam10k_gst";
 
 
-
 	std::cout<<"Starting CC nue."<<std::endl;
-	genie_study(nue);
+	genie_study(nue,0);
 	std::cout<<"Starting CC numu."<<std::endl;
-	genie_study(numu);
+	genie_study(numu,0);
 	std::cout<<"Starting CC nutau."<<std::endl;
-	genie_study(nutau);
+	genie_study(nutau,0);
 
 	std::cout<<"Starting CC nuebar."<<std::endl;
-	genie_study(nuebar);
+	genie_study(nuebar,0);
 	std::cout<<"Starting CC numubar."<<std::endl;
-	genie_study(numubar);
+	genie_study(numubar,0);
 	std::cout<<"Starting CC nutaubar."<<std::endl;
-	genie_study(nutaubar);
+	genie_study(nutaubar,0);
 
 	std::cout<<"Starting wierd CC numu_nuebeam."<<std::endl;
-	genie_study(numu_nuebeam);
+	genie_study(numu_nuebeam,0);
 	std::cout<<"Starting wierd CC numubear_nuebarbeam."<<std::endl;
-	genie_study(numubar_nuebarbeam);
-
+	genie_study(numubar_nuebarbeam,0);
 
 
 	std::cout<<"Starting NC nue."<<std::endl;
-	genie_NC(nue);
+	genie_NC(nue,0);
 	std::cout<<"Starting NC numu."<<std::endl;
-	genie_NC(numu);
+	genie_NC(numu,0);
 	std::cout<<"Starting NC nutau."<<std::endl;
-	genie_NC(nutau);
+	genie_NC(nutau,0);
 
 	std::cout<<"Starting NC nuebar."<<std::endl;
-	genie_NC(nuebar);
+	genie_NC(nuebar,0);
 	std::cout<<"Starting NC numubar."<<std::endl;
-	genie_NC(numubar);
+	genie_NC(numubar,0);
 	std::cout<<"Starting NC nutaubar."<<std::endl;
-	genie_NC(nutaubar);
+	genie_NC(nutaubar,0);
+
+
+	TString BHCnutaubar = "gntp.0.RHC_FD_numubarflux_nutaubarbeam20k_gst";
+	TString BHCnutau = "gntp.0.RHC_FD_numuflux_nutaubeam10k_gst";
+
+	TString BHCnue  = "gntp.0.RHC_FD_nueflux_nuebeam10k_gst";
+	TString BHCnuebar = "gntp.0.RHC_FD_nuebarflux_nuebarbeam10k_gst";
+
+	TString BHCnumu  = "gntp.0.RHC_FD_numuflux_numubeam20k_gst";
+	TString BHCnumubar = "gntp.0.RHC_FD_numubarflux_numubarbeam50k_gst";
+
+	TString BHCnumu_BHCnuebeam  = "gntp.0.RHC_FD_numuflux_nuebeam10k_gst";
+	TString BHCnumubar_BHCnuebarbeam = "gntp.0.RHC_FD_numubarflux_nuebarbeam20k_gst";
+
+
+	//anti 
+	std::cout<<"Starting CC nue."<<std::endl;
+	genie_study(BHCnue,1);
+	std::cout<<"Starting CC BHCnumu."<<std::endl;
+	genie_study(BHCnumu,1);
+	std::cout<<"Starting CC BHCnutau."<<std::endl;
+	genie_study(BHCnutau,1);
+
+	std::cout<<"Starting CC BHCnuebar."<<std::endl;
+	genie_study(BHCnuebar,1);
+	std::cout<<"Starting CC BHCnumubar."<<std::endl;
+	genie_study(BHCnumubar,1);
+	std::cout<<"Starting CC BHCnutaubar."<<std::endl;
+	genie_study(BHCnutaubar,1);
+
+	std::cout<<"Starting wierd CC BHCnumu_BHCnuebeam."<<std::endl;
+	genie_study(BHCnumu_BHCnuebeam,1);
+	std::cout<<"Starting wierd CC BHCnumubear_BHCnuebarbeam."<<std::endl;
+	genie_study(BHCnumubar_BHCnuebarbeam,1);
+
+
+	std::cout<<"Starting NC BHCnue."<<std::endl;
+	genie_NC(BHCnue,1);
+	std::cout<<"Starting NC BHCnumu."<<std::endl;
+	genie_NC(BHCnumu,1);
+	std::cout<<"Starting NC BHCnutau."<<std::endl;
+	genie_NC(BHCnutau,1);
+
+	std::cout<<"Starting NC BHCnuebar."<<std::endl;
+	genie_NC(BHCnuebar,1);
+	std::cout<<"Starting NC BHCnumubar."<<std::endl;
+	genie_NC(BHCnumubar,1);
+	std::cout<<"Starting NC BHCnutaubar."<<std::endl;
+	genie_NC(BHCnutaubar,1);
+
+
 
 	//std::cout<<"Starting wierd NC numu_nuebeam."<<std::endl;
 	//genie_NC(numu_nuebeam);
 	//std::cout<<"Starting wierd NC numubear_nuebarbeam."<<std::endl;
 	//genie_NC(numubar_nuebarbeam);
-
-
 
 }
 
