@@ -47,7 +47,7 @@ struct myphoton{
 
 // 0 = FHC
 // 1 = BHC
-void genie_study(TString filename, int nu_mode){
+void genie_study(TString filename, int nu_mode, int nu_type){
 
 	//want to try osc. + weak decay of tau.
 
@@ -82,7 +82,7 @@ void genie_study(TString filename, int nu_mode){
 
 	//Fullosc sample is taken from the numu flux ran through GENIE as a nue beam
 	bool isfullosc=false;
-	if(filename == "gntp.0.numuflux_nuebeam50k_gst" || filename == "gntp.0.numubarflux_nuebarbeam50k_gst"){
+	if(filename == "gntp.0.numuflux_nuebeam50k_gst" || filename == "gntp.0.numubarflux_nuebarbeam50k_gst" || filename == "gntp.0.RHC_FD_numuflux_nuebeam10k_gst" || filename == "gntp.0.RHC_FD_numubarflux_nuebarbeam20k_gst"){
 		isfullosc=true;
 	}
 
@@ -91,9 +91,9 @@ void genie_study(TString filename, int nu_mode){
 
 	std::vector<std::string> subchannels ;
 	if(nu_mode == 0){ 
-		subchannels=	{"nu_dune_elike_fullosc", "nu_dune_elike_intrinsic" , "nu_dune_elike_mumisid", "nu_dune_elike_taumisid"};
+		subchannels=	{"nu_dune_elike_fullosc", "nu_dune_elike_fulloscbar","nu_dune_elike_intrinsic" ,"nu_dune_elike_intrinsicbar", "nu_dune_elike_mumisid", "nu_dune_elike_mumisidbar","nu_dune_elike_taumisid","nu_dune_elike_taumisidbar"};
 	} else if(nu_mode ==1){
-		subchannels=	{"nubar_dune_elike_fullosc", "nubar_dune_elike_intrinsic" , "nubar_dune_elike_mumisid", "nubar_dune_elike_taumisid"};
+		subchannels=	{"nubar_dune_elike_fullosc", "nubar_dune_elike_fulloscbar","nubar_dune_elike_intrinsic" ,"nubar_dune_elike_intrinsicbar", "nubar_dune_elike_mumisid", "nubar_dune_elike_mumisidbar","nubar_dune_elike_taumisid","nubar_dune_elike_taumisidbar"};
 	}
 
 
@@ -567,9 +567,18 @@ void genie_study(TString filename, int nu_mode){
 					//std::cout<<"NCC: "<<m_Ereco<<" "<<m_Etrue<<" "<<m_l<<" "<<m_weight<<" "<<m_nutype<<std::endl;
 			
 					if(isfullosc){
-						list_o_trees.at(0)->Fill();
+						if(nu_type >0){
+							list_o_trees.at(0)->Fill();
+						}else {
+							list_o_trees.at(1)->Fill();
+						}
+						
 					}else{
-						list_o_trees.at(1)->Fill();
+						if(nu_type >0){
+							list_o_trees.at(2)->Fill();
+						}else {
+							list_o_trees.at(3)->Fill();
+						}
 					}	
 
 					//hist_cc_El_true->Fill(El,cc_efficiency*vertex_weight);
@@ -685,7 +694,13 @@ void genie_study(TString filename, int nu_mode){
 	
 					if(isfullosc){
 					}else{
-						list_o_trees.at(2)->Fill();
+						if(nu_type >0){
+							list_o_trees.at(4)->Fill();
+						}else{
+							list_o_trees.at(5)->Fill();
+
+						}
+					
 					}	
 
 
@@ -771,8 +786,14 @@ void genie_study(TString filename, int nu_mode){
 					m_weight = cc_efficiency*vertex_weight*0.1783*POT_norm;
 					m_nutype = neu;
 					//std::cout<<"NCC: "<<m_Ereco<<" "<<m_Etrue<<" "<<m_l<<" "<<m_weight<<" "<<m_nutype<<std::endl;
-					if(!isfullosc)	list_o_trees.at(3)->Fill();
+					if(!isfullosc){	
+					if(nu_type >0){
+							list_o_trees.at(6)->Fill();
+						}else{
+							list_o_trees.at(7)->Fill();
 
+						}
+					}
 					/*hist_PT_vs_PL_weak->Fill(MissingEnergy.Pt(),Pztot,prob_muflav(Ev,3));
 					  hist_PT_weak->Fill(MissingEnergy.Pt(),prob_muflav(Ev,3));
 					  hist_PL_weak->Fill(Pztot,prob_muflav(Ev,3));
@@ -3425,38 +3446,29 @@ void run_all_genie_study(){
 
 
 	std::cout<<"Starting CC nue."<<std::endl;
-	genie_study(nue,0);
+	genie_study(nue,0, 1);
 	std::cout<<"Starting CC numu."<<std::endl;
-	genie_study(numu,0);
+	genie_study(numu,0, 1);
 	std::cout<<"Starting CC nutau."<<std::endl;
-	genie_study(nutau,0);
+	genie_study(nutau,0, 1);
 
 	std::cout<<"Starting CC nuebar."<<std::endl;
-	genie_study(nuebar,0);
+	genie_study(nuebar,0, -1);
 	std::cout<<"Starting CC numubar."<<std::endl;
-	genie_study(numubar,0);
+	genie_study(numubar,0, -1);
 	std::cout<<"Starting CC nutaubar."<<std::endl;
-	genie_study(nutaubar,0);
+	genie_study(nutaubar,0, -1);
 
 	std::cout<<"Starting wierd CC numu_nuebeam."<<std::endl;
-	genie_study(numu_nuebeam,0);
+	genie_study(numu_nuebeam,0, 1);
 	std::cout<<"Starting wierd CC numubear_nuebarbeam."<<std::endl;
-	genie_study(numubar_nuebarbeam,0);
+	genie_study(numubar_nuebarbeam,0, -1);
 
 
-	std::cout<<"Starting NC nue."<<std::endl;
-	genie_NC(nue,0);
 	std::cout<<"Starting NC numu."<<std::endl;
 	genie_NC(numu,0);
-	std::cout<<"Starting NC nutau."<<std::endl;
-	genie_NC(nutau,0);
-
-	std::cout<<"Starting NC nuebar."<<std::endl;
-	genie_NC(nuebar,0);
 	std::cout<<"Starting NC numubar."<<std::endl;
 	genie_NC(numubar,0);
-	std::cout<<"Starting NC nutaubar."<<std::endl;
-	genie_NC(nutaubar,0);
 
 
 	TString BHCnutaubar = "gntp.0.RHC_FD_numubarflux_nutaubarbeam20k_gst";
@@ -3474,39 +3486,29 @@ void run_all_genie_study(){
 
 	//anti 
 	std::cout<<"Starting CC nue."<<std::endl;
-	genie_study(BHCnue,1);
+	genie_study(BHCnue,1, 1);
 	std::cout<<"Starting CC BHCnumu."<<std::endl;
-	genie_study(BHCnumu,1);
+	genie_study(BHCnumu,1, 1);
 	std::cout<<"Starting CC BHCnutau."<<std::endl;
-	genie_study(BHCnutau,1);
+	genie_study(BHCnutau,1, 1);
 
 	std::cout<<"Starting CC BHCnuebar."<<std::endl;
-	genie_study(BHCnuebar,1);
+	genie_study(BHCnuebar,1, -1);
 	std::cout<<"Starting CC BHCnumubar."<<std::endl;
-	genie_study(BHCnumubar,1);
+	genie_study(BHCnumubar,1, -1);
 	std::cout<<"Starting CC BHCnutaubar."<<std::endl;
-	genie_study(BHCnutaubar,1);
+	genie_study(BHCnutaubar,1, -1);
 
 	std::cout<<"Starting wierd CC BHCnumu_BHCnuebeam."<<std::endl;
-	genie_study(BHCnumu_BHCnuebeam,1);
+	genie_study(BHCnumu_BHCnuebeam,1, 1);
 	std::cout<<"Starting wierd CC BHCnumubear_BHCnuebarbeam."<<std::endl;
-	genie_study(BHCnumubar_BHCnuebarbeam,1);
+	genie_study(BHCnumubar_BHCnuebarbeam,1, -1);
 
 
-	std::cout<<"Starting NC BHCnue."<<std::endl;
-	genie_NC(BHCnue,1);
 	std::cout<<"Starting NC BHCnumu."<<std::endl;
 	genie_NC(BHCnumu,1);
-	std::cout<<"Starting NC BHCnutau."<<std::endl;
-	genie_NC(BHCnutau,1);
-
-	std::cout<<"Starting NC BHCnuebar."<<std::endl;
-	genie_NC(BHCnuebar,1);
 	std::cout<<"Starting NC BHCnumubar."<<std::endl;
 	genie_NC(BHCnumubar,1);
-	std::cout<<"Starting NC BHCnutaubar."<<std::endl;
-	genie_NC(BHCnutaubar,1);
-
 
 
 	//std::cout<<"Starting wierd NC numu_nuebeam."<<std::endl;

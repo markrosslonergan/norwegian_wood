@@ -88,7 +88,7 @@ void bethe_test(){
 
 }
 
-void genie_mu(TString filename, int nu_mode){
+void genie_mu(TString filename, int nu_mode, int nu_type){
 
 	//want to try osc. + weak decay of tau.
 
@@ -137,9 +137,11 @@ void genie_mu(TString filename, int nu_mode){
 
 	std::vector<std::string> subchannels ;
 	if(nu_mode == 0){ 
-	subchannels = {"nu_dune_mulike_intrinsic","nu_dune_mulike_taumisid","nu_dune_mulike_ncmisid"};
+	subchannels = {"nu_dune_mulike_intrinsic",  "nu_dune_mulike_intrinsicbar", "nu_dune_mulike_taumisid", "nu_dune_mulike_taumisidbar","nu_dune_mulike_ncmisid"};
+
 	} else if(nu_mode ==1){
-	subchannels = {"nubar_dune_mulike_intrinsic","nubar_dune_mulike_taumisid","nubar_dune_mulike_ncmisid"};
+	subchannels = {"nubar_dune_mulike_intrinsic",  "nubar_dune_mulike_intrinsicbar", "nubar_dune_mulike_taumisid", "nubar_dune_mulike_taumisidbar","nubar_dune_mulike_ncmisid"};
+
 	}
 	double m_Ereco=0;
 	double m_Etrue=0;
@@ -518,7 +520,12 @@ void genie_mu(TString filename, int nu_mode){
 				m_weight = cc_efficiency_mu*POT_norm;
 				m_nutype = neu;
 				//std::cout<<"NCC: "<<m_Ereco<<" "<<m_Etrue<<" "<<m_l<<" "<<m_weight<<" "<<m_nutype<<std::endl;
-				list_o_trees.at(2)->Fill();
+				if( nu_mode == 0 && (filename == "gntp.0.numu50k_gst" || filename == "gntp.0.numubar10k_gst" )){
+					list_o_trees.at(4)->Fill();
+				}else if(nu_mode ==1 && (filename =="gntp.0.RHC_FD_numuflux_numubeam20k_gst" || filename == "gntp.0.RHC_FD_numubarflux_numubarbeam50k_gst")){
+					list_o_trees.at(4)->Fill();
+				}
+
 
 
 			}
@@ -741,8 +748,12 @@ void genie_mu(TString filename, int nu_mode){
 						m_nutype = neu;
 						
 						//std::cout<<"INT: "<<m_Ereco<<" "<<m_Etrue<<" "<<m_l<<" "<<m_weight<<" "<<m_nutype<<std::endl;
-						list_o_trees.at(0)->Fill();
+						if(nu_type >0){
+							list_o_trees.at(0)->Fill();
+						} else {
 
+							list_o_trees.at(1)->Fill();
+						}
 
 
 						//hist_cc_El_true->Fill(El,cc_efficiency*vertex_weight);
@@ -876,9 +887,12 @@ void genie_mu(TString filename, int nu_mode){
 						m_weight = cc_efficiency_mu*vertex_weight*0.1739*POT_norm;
 						m_nutype = neu;
 						//std::cout<<"TAU: "<<m_Ereco<<" "<<m_Etrue<<" "<<m_l<<" "<<m_weight<<" "<<m_nutype<<std::endl;
-						list_o_trees.at(1)->Fill();
+						if(nu_type>0){
 
-
+						list_o_trees.at(2)->Fill();
+						}else{
+						list_o_trees.at(3)->Fill();
+						}
 
 
 
@@ -931,23 +945,23 @@ void run_all_genie_mu(){
 
 
 	std::cout<<"Starting CC nue."<<std::endl;
-	genie_mu(nue,0);
+	genie_mu(nue,0,1);
 	std::cout<<"Starting CC numu."<<std::endl;
-	genie_mu(numu,0);
+	genie_mu(numu,0,1);
 	std::cout<<"Starting CC nutau."<<std::endl;
-	genie_mu(nutau,0);
+	genie_mu(nutau,0,1);
 
 	std::cout<<"Starting CC nuebar."<<std::endl;
-	genie_mu(nuebar,0);
+	genie_mu(nuebar,0,-1);
 	std::cout<<"Starting CC numubar."<<std::endl;
-	genie_mu(numubar,0);
+	genie_mu(numubar,0,-1);
 	std::cout<<"Starting CC nutaubar."<<std::endl;
-	genie_mu(nutaubar,0);
+	genie_mu(nutaubar,0,-1);
 
 	std::cout<<"Starting wierd CC numu_nuebeam."<<std::endl;
-	genie_mu(numu_nuebeam,0);
+	genie_mu(numu_nuebeam,0,1);
 	std::cout<<"Starting wierd CC numubear_nuebarbeam."<<std::endl;
-	genie_mu(numubar_nuebarbeam,0);
+	genie_mu(numubar_nuebarbeam,0,-1);
 
 
 	TString BHCnutaubar = "gntp.0.RHC_FD_numubarflux_nutaubarbeam20k_gst";
@@ -964,23 +978,23 @@ void run_all_genie_mu(){
 
 
 	std::cout<<"Starting CC BHCnue."<<std::endl;
-	genie_mu(BHCnue,1);
+	genie_mu(BHCnue,1,1);
 	std::cout<<"Starting CC BHCnumu."<<std::endl;
-	genie_mu(BHCnumu,1);
+	genie_mu(BHCnumu,1,1);
 	std::cout<<"Starting CC BHCnutau."<<std::endl;
-	genie_mu(BHCnutau,1);
+	genie_mu(BHCnutau,1,1);
 
 	std::cout<<"Starting CC BHCnuebar."<<std::endl;
-	genie_mu(BHCnuebar,1);
+	genie_mu(BHCnuebar,1,-1);
 	std::cout<<"Starting CC BHCnumubar."<<std::endl;
-	genie_mu(BHCnumubar,1);
+	genie_mu(BHCnumubar,1,-1);
 	std::cout<<"Starting CC BHCnutaubar."<<std::endl;
-	genie_mu(BHCnutaubar,1);
+	genie_mu(BHCnutaubar,1,-1);
 
 	std::cout<<"Starting wierd CC BHCnumu_BHCnuebeam."<<std::endl;
-	genie_mu(BHCnumu_BHCnuebeam,1);
+	genie_mu(BHCnumu_BHCnuebeam,1,1);
 	std::cout<<"Starting wierd CC BHCnumubear_BHCnuebarbeam."<<std::endl;
-	genie_mu(BHCnumubar_BHCnuebarbeam,1);
+	genie_mu(BHCnumubar_BHCnuebarbeam,1,-1);
 
 
 
