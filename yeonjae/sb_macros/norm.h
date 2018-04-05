@@ -3,11 +3,47 @@
 
 //#include "TRandom.h"
 #include "TRandom3.h"
+#include "TString.h"
 #include <vector>
 #include <string>
 #include "TLorentzVector.h"//yj
 
 #include "params.h"
+
+struct gst_file{
+
+	int nu_type;
+	int beam_type;
+	TString filename;
+	double norm;
+	std::vector<std::string> hists;
+	std::vector<bool> in_use;	
+
+	gst_file(TString innam, int inbeam , int intype, double innorm) : filename(innam), beam_type(inbeam), nu_type(intype), norm(innorm){}; 
+
+	int setHistLocations(std::vector<string> strin){
+		std::string horncurrent;
+		if(beam_type==0) horncurrent = "nu";
+		if(beam_type==1) horncurrent = "nubar";
+
+		for(auto &s: strin){
+
+			if(s!=""){
+				hists.push_back( horncurrent+"_dune_"+s);
+				in_use.push_back(true);
+			}else{
+				hists.push_back("");
+				in_use.push_back(false);
+			}
+		}
+
+		return 0;
+	};
+
+};
+
+
+
 
 double get_normalization(TString name){
 

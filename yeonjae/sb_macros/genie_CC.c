@@ -37,8 +37,6 @@ struct myphoton{
 #include "functions.c"
 #include "genie_tau_test.c" // "genie_tau_test.c" contains a function which returns numu->nutau osc. probability.
 
-
-
 //genie_study -> temporary checking out plots
 
 //genie_CC_slimmed -> essencial plots
@@ -47,9 +45,8 @@ struct myphoton{
 
 // 0 = FHC
 // 1 = BHC
-void genie_study(TString filename, int nu_mode, int nu_type){
+void genie_study(gst_file * file){
 
-	//want to try osc. + weak decay of tau.
 
 	//cc
 	//e->e
@@ -71,32 +68,20 @@ void genie_study(TString filename, int nu_mode, int nu_type){
 	// gntp.0.numubarflux_nuebarbeam10k_gst
 	// gntp.0.numubar10k_gst
 
-	TFile *f = new TFile(TString("../gst0to40/")+filename+TString(".root"));
+	TFile *f = new TFile(TString("../gst0to40/")+file->filename+TString(".root"));
 	TTree *gstree = (TTree*)f->Get("gst");
 
 	//given that gsttree gets the POT scaling
-	double POT_norm = get_normalization(filename);
-	std::cout<<"POT Normalization: "<<filename<<" "<<POT_norm<<std::endl;
+	double POT_norm = file->norm;
+	std::cout<<"POT Normalization: "<<file->filename<<" "<<POT_norm<<std::endl;
 
-	TFile *fnew = new TFile(TString("../gst0to40/out/")+filename+TString("_study_out.root"),"recreate");
+	TFile *fnew = new TFile(TString("../gst0to40/out/")+file->filename+TString("_study_out.root"),"recreate");
 
-	//Fullosc sample is taken from the numu flux ran through GENIE as a nue beam
-	bool isfullosc=false;
-	if(filename == "gntp.0.numuflux_nuebeam50k_gst" || filename == "gntp.0.numubarflux_nuebarbeam50k_gst" || filename == "gntp.0.RHC_FD_numuflux_nuebeam10k_gst" || filename == "gntp.0.RHC_FD_numubarflux_nuebarbeam20k_gst"){
-		isfullosc=true;
-	}
-
+	//output file
 	TFile * fntuple = new TFile("DUNE_ntuple.root","UPDATE");
 
 
-	std::vector<std::string> subchannels ;
-	if(nu_mode == 0){ 
-		subchannels=	{"nu_dune_elike_fullosc", "nu_dune_elike_fulloscbar","nu_dune_elike_intrinsic" ,"nu_dune_elike_intrinsicbar", "nu_dune_elike_mumisid", "nu_dune_elike_mumisidbar","nu_dune_elike_taumisid","nu_dune_elike_taumisidbar"};
-	} else if(nu_mode ==1){
-		subchannels=	{"nubar_dune_elike_fullosc", "nubar_dune_elike_fulloscbar","nubar_dune_elike_intrinsic" ,"nubar_dune_elike_intrinsicbar", "nubar_dune_elike_mumisid", "nubar_dune_elike_mumisidbar","nubar_dune_elike_taumisid","nubar_dune_elike_taumisidbar"};
-	}
-
-
+	std::vector<std::string> subchannels  = file->hists;
 	std::vector<TTree*> list_o_trees;
 
 	double m_Ereco=0;
@@ -109,6 +94,7 @@ void genie_study(TString filename, int nu_mode, int nu_type){
 
 
 	for(auto s: subchannels){
+		if(s == "") continue;
 
 		if(fntuple->GetListOfKeys()->Contains(s.c_str())){
 			std::cout<<s<<" exists in file."<<std::endl;
@@ -133,8 +119,6 @@ void genie_study(TString filename, int nu_mode, int nu_type){
 
 		}
 	}
-
-
 
 	int neu;
 	double energyf[100];
@@ -524,12 +508,12 @@ void genie_study(TString filename, int nu_mode, int nu_type){
 
 
 			/************************************************************
-			 *			Intrinsic Nue Section
+			 *			Intrinsic Nue Section or NUM 0
 			 *
 			 ***********************************************************/
 
 			// intrinsic
-			if (cc && abs(neu)==12) {
+			if (cc && abs(neu)==12 && file->in_use.at(0)) {
 
 				double pT = TMath::Sqrt(Pxtot*Pxtot + Pytot*Pytot);
 				double pL = Pztot;
@@ -565,22 +549,12 @@ void genie_study(TString filename, int nu_mode, int nu_type){
 					m_weight = cc_efficiency*vertex_weight*POT_norm;
 					m_nutype = neu;
 					//std::cout<<"NCC: "<<m_Ereco<<" "<<m_Etrue<<" "<<m_l<<" "<<m_weight<<" "<<m_nutype<<std::endl;
-			
-					if(isfullosc){
-						if(nu_type >0){
-							list_o_trees.at(0)->Fill();
-						}else {
-							list_o_trees.at(1)->Fill();
-						}
-						
-					}else{
-						if(nu_type >0){
-							list_o_trees.at(2)->Fill();
-						}else {
-							list_o_trees.at(3)->Fill();
-						}
-					}	
-
+	
+					if(file->in_use.at(0)){
+						list_o_trees.at(0)->Fill();	
+					}
+		
+	
 					//hist_cc_El_true->Fill(El,cc_efficiency*vertex_weight);
 					//hist_cc_ehad_true->Fill(Ehad_true,cc_efficiency*vertex_weight);
 					//hist_cc_reco_true->Fill(El+Ehad_true,cc_efficiency*vertex_weight);
@@ -625,11 +599,11 @@ void genie_study(TString filename, int nu_mode, int nu_type){
 
 
 			/************************************************************
-			 *			Muon Section
+			 *			Muon Section NUM 1
 			 *
 			 ***********************************************************/
 
-			if (cc && abs(neu)==14) {
+			if (cc && abs(neu)==14 && file->in_use.at(1)) {
 				// hist_charlep->Fill(El);
 				double prob = 0.;
 
@@ -691,19 +665,13 @@ void genie_study(TString filename, int nu_mode, int nu_type){
 					m_weight = cc_efficiency*vertex_weight*egamma_misidrate*POT_norm;
 					m_nutype = neu;
 					//std::cout<<"NCC: "<<m_Ereco<<" "<<m_Etrue<<" "<<m_l<<" "<<m_weight<<" "<<m_nutype<<std::endl;
+
+					if(file->in_use.at(1)){
+
+						list_o_trees.at(0)->Fill();
+					}		
+
 	
-					if(isfullosc){
-					}else{
-						if(nu_type >0){
-							list_o_trees.at(4)->Fill();
-						}else{
-							list_o_trees.at(5)->Fill();
-
-						}
-					
-					}	
-
-
 						//   hist_cc_El_true->Fill(El,cc_efficiency*vertex_weight*egamma_misidrate);
 						//   hist_cc_ehad_true->Fill(Ehad_mu_true,cc_efficiency*vertex_weight*egamma_misidrate);
 						//   hist_cc_reco_true->Fill(background_photons_true.at(0).lorentz.E()+Ehad_mu_true,cc_efficiency*vertex_weight*egamma_misidrate);
@@ -718,12 +686,12 @@ void genie_study(TString filename, int nu_mode, int nu_type){
 
 
 			/************************************************************
-			 *			Tau Section
+			 *			Tau Section NUM 2
 			 *
 			 ***********************************************************/
 
 
-			if (cc && abs(neu)==16) {
+			if (cc && abs(neu)==16 && file->in_use.at(2)) {
 
 				TLorentzVector daughter[3];
 				daughter[0].SetPxPyPzE(0.0,0.0,0.0,0.0);
@@ -786,14 +754,9 @@ void genie_study(TString filename, int nu_mode, int nu_type){
 					m_weight = cc_efficiency*vertex_weight*0.1783*POT_norm;
 					m_nutype = neu;
 					//std::cout<<"NCC: "<<m_Ereco<<" "<<m_Etrue<<" "<<m_l<<" "<<m_weight<<" "<<m_nutype<<std::endl;
-					if(!isfullosc){	
-					if(nu_type >0){
-							list_o_trees.at(6)->Fill();
-						}else{
-							list_o_trees.at(7)->Fill();
-
-						}
-					}
+					if(file->in_use.at(2)){
+						list_o_trees.at(0)->Fill();
+					}	
 					/*hist_PT_vs_PL_weak->Fill(MissingEnergy.Pt(),Pztot,prob_muflav(Ev,3));
 					  hist_PT_weak->Fill(MissingEnergy.Pt(),prob_muflav(Ev,3));
 					  hist_PL_weak->Fill(Pztot,prob_muflav(Ev,3));
@@ -2798,717 +2761,696 @@ void genie_CC(){
 }
 
 
-void genie_NC(TString filename, int nu_mode){
-
-
-	double POT_norm = get_normalization(filename);
-
-	/*"The signal for nue apperance is an excess of charged-current(CC) nue and nuebar interactions over the expected background in the far detector. The background to nue appearance is composed of : (1) CC interactions of nue and nuebar intrinsic to the beam; (2) misidentified numu and numubar CC events; (3) neutral current (NC) backgrounds and (4) nutau and nutaubar CC events in which the tau's decay leptonically into electrons/positrons. NC and nutau backgrounds are due to interactions of higher-energy neutrinos but they contribute to backgrounds mainly at low energy, which is important for the sensitivity to CP violation."*/
-
-	TRandom3 *rangen = new TRandom3(0);
-
-
-//	TString filename = "gntp.0.numubar10k_gst";
-
-	// gntp.0.numuflux_nuebeam50k_gst
-	// gntp.0.nutaubar20k_gst
-	// gntp.0.nutau20k_gst
-	// gntp.0.nue20k_gst
-	// gntp.0.nuebar20k_gst
-	// gntp.0.numu50k_gst
-	// gntp.0.numubarflux_nuebarbeam10k_gst
-	// gntp.0.numubar10k_gst
-
-	TFile *f = new TFile(TString("../gst0to40/")+filename+TString(".root"));
-	TTree *gstree = (TTree*)f->Get("gst");
-
-	TFile *fnew = new TFile(TString("../gst0to40/out/")+filename+TString("_NC_study_out.root"),"recreate");
-
-	TFile * fntuple = new TFile("DUNE_ntuple.root","UPDATE");
-
-
-
-	std::vector<std::string> subchannels;
-	if(nu_mode ==0){
-		subchannels = {"nu_dune_elike_ncmisid"};
-	} else if(nu_mode==1){
-		subchannels = {"nubar_dune_elike_ncmisid"};
-	}
-
-
-	std::vector<TTree*> list_o_trees;
-
-	double m_Ereco=0;
-	double m_Etrue=0;
-	double m_l=0;
-	double m_weight=0;
-	int m_nutype=0;
-	int m_ngen=0;
-
-
-
-	for(auto s: subchannels){
-
-		if(fntuple->GetListOfKeys()->Contains(s.c_str())){
-			std::cout<<s<<" exists in file."<<std::endl;
-			list_o_trees.push_back( (TTree*)fntuple->Get(s.c_str()) );	
-			list_o_trees.back()->SetBranchAddress("Ereco",&m_Ereco );
-			list_o_trees.back()->SetBranchAddress("Etrue",&m_Etrue );
-			list_o_trees.back()->SetBranchAddress("L",&m_l);
-			list_o_trees.back()->SetBranchAddress("Weight",&m_weight);
-			list_o_trees.back()->SetBranchAddress("NuType",&m_nutype);
-			list_o_trees.back()->SetBranchAddress("NGen",&m_ngen);
-
-
-		}else{
-			std::cout<<s<<" does not exist in file, creating it."<<std::endl;
-			list_o_trees.push_back(  new TTree(s.c_str(), s.c_str())  );
-			list_o_trees.back()->Branch("Ereco",&m_Ereco ,"Ereco/D");
-			list_o_trees.back()->Branch("Etrue",&m_Etrue,"Etrue/D" );
-			list_o_trees.back()->Branch("L",&m_l, "L/D" );
-			list_o_trees.back()->Branch("Weight",&m_weight, "Weight/D");
-			list_o_trees.back()->Branch("NuType",&m_nutype, "NuType/I");
-			list_o_trees.back()->Branch("NGen",&m_ngen, "NGen/I");
-
-		}
-	}
-
-
-
-
-
-	int neu;
-	double energyf[100];
-	double pf[100];
-	int pdgf[100];
-	double Q2;
-	int nf;
-	bool cc;
-	bool nc;
-	int fspl;
-	double El;
-	double Ev;
-	double pxl;
-	double pyl;
-	double pzl;
-	int nfpi0;
-	int Np;
-	int Npip;
-	int Npim;
-	int Nph;
-	int No;
-	double pxf[100];
-	double pyf[100];
-	double pzf[100];
-
-	double Ep[100];
-	double Epip[100];
-	double Epim[100];
-	int    pdgo[100];
-	double Eo[100];
-	double Eph[100];
-
-	//double EM_thresh =0.03;
-	double egamma_misidrate=0.06;
-	double cc_efficiency=0.8;
-	double pion_mass = 0.13498;
-	double convlength_thresh = 5.;//using 5cm for photon conversion length threshold.
-	double NEUTRON_FACTOR = 0.6;
-
-
-	gstree->SetBranchAddress("neu",&neu);
-	gstree->SetBranchAddress("Ef",&energyf);
-	gstree->SetBranchAddress("Ev",&Ev);
-	gstree->SetBranchAddress("pf",&pf);
-	gstree->SetBranchAddress("pxf",&pxf);
-	gstree->SetBranchAddress("pyf",&pyf);
-	gstree->SetBranchAddress("pzf",&pzf);
-	gstree->SetBranchAddress("pdgf",&pdgf);
-	gstree->SetBranchAddress("Q2",&Q2);
-	gstree->SetBranchAddress("nf",&nf);
-	gstree->SetBranchAddress("cc",&cc);
-	gstree->SetBranchAddress("nc",&nc);
-	gstree->SetBranchAddress("fspl",&fspl);//final state pdg lepton?
-	gstree->SetBranchAddress("El",&El);
-	gstree->SetBranchAddress("pxl",&pxl);
-	gstree->SetBranchAddress("pyl",&pyl);
-	gstree->SetBranchAddress("pzl",&pzl);
-
-	TH1F *hist_sizeofgammas = new TH1F("hist_sizeofgammas", "sizeofgammas", 10, 0., 10.);
-	hist_sizeofgammas->Sumw2();
-
-	TH1F *hist_PT = new TH1F("hist_PT", "PT", 80, 0., 2.);
-	hist_PT->Sumw2();
-
-	TH1F *hist_lepton_PT = new TH1F("hist_lepton_PT", "lepton_PT", 80, 0., 2.);
-	hist_lepton_PT->Sumw2();
-
-	TH2F *hist_PT_vs_lepton_PT = new TH2F("hist_PT_vs_lepton_PT", "PT_vs_lepton_EP", 80, 0., 2.,80.,0.,2.);
-	hist_PT_vs_lepton_PT->Sumw2();
-
-	TH1F *hist_twoneutrinos_PT = new TH1F("hist_twoneutrinos_PT", "twoneutrinos_PT", 80, 0., 2.);
-	hist_twoneutrinos_PT->Sumw2();
-
-	TH1F *hist_sizeofbackgroundgammas = new TH1F("hist_sizeofbackgroundgammas", "sizeofbackgroundgammas", 5, 0., 5.);
-	hist_sizeofbackgroundgammas->Sumw2();
-	TH1F *hist_sizeofisphoton = new TH1F("hist_sizeofisphoton", "sizeofisphoton", 5, 0., 5.);
-	hist_sizeofisphoton->Sumw2();
-
-
-	//TH1F *hist_singlegamma = new TH1F("hist_singlegamma", "singlegamma", 80, 0., 20.);
-	//hist_singlegamma->Sumw2();
-
-
-
-	//TH1F *hist_backgroundsinglegamma_test = new TH1F("hist_backgroundsinglegamma_test", "backgroundsinglegamma_test", 80, 0., 20.);
-	//hist_backgroundsinglegamma_test->Sumw2();
-
-	TH1F *hist_gamma1phi = new TH1F("hist_gamma1phi", "gamma1phi", 20., -5., 5.);
-	hist_gamma1phi->Sumw2();
-	TH1F *hist_gamma1costheta = new TH1F("hist_gamma1costheta", "gamma1costheta", 20., -1., 1.);
-	hist_gamma1costheta->Sumw2();
-	TH1F *hist_gamma1sintheta = new TH1F("hist_gamma1sintheta", "gamma1sintheta", 20., -1., 1.);
-	hist_gamma1sintheta->Sumw2();
-
-	TH1F *hist_angle_separation = new TH1F("hist_angle_separation", "angle_separation", 100., 0., 3.14);
-	hist_angle_separation->Sumw2();
-
-	TH1F *hist_angle_separation2 = new TH1F("hist_angle_separation2", "angle_separation2", 100., 0., 3.14);
-	hist_angle_separation2->Sumw2();
-
-	TH1F *hist_2gammainvmass = new TH1F("hist_2gammainvmass", "2gammainvmass", 20., 0., 0.2);
-	hist_2gammainvmass->Sumw2();
-
-	TH1F *hist_vis_vertex = new TH1F("hist_vis_vertex", "hist_vis_vertex", 2., 0., 2.);
-	hist_vis_vertex->Sumw2();
-
-	TH2F *hist_convlength_vs_E = new TH2F("hist_convlength_vs_E", "convlength_vs_E",20,0.,10.,20,0.,100.);
-	hist_convlength_vs_E->Sumw2();
-
-	TH2F *hist_dalitz = new TH2F("hist_dalitz", "dalitz",200,0.,5.,200,0.,5.);
-	hist_dalitz->Sumw2();
-
-
-	TH1F *hist_convlength = new TH1F("hist_convlength", "convlength",20,0.,100.);
-	hist_convlength->Sumw2();
-
-	TH1F *hist_cc_ehad = new TH1F("hist_cc_ehad", "cc_ehad", 80, 0., 20.);
-	hist_cc_ehad->Sumw2();
-	TH1F *hist_cc_reco = new TH1F("hist_cc_reco", "cc_reco", 80, 0., 20.);
-	hist_cc_reco->Sumw2();
-	TH1F *hist_cc_El = new TH1F("hist_cc_El", "cc_El", 80, 0., 20.);
-	hist_cc_El->Sumw2();
-
-	TH1F *hist_cc_ehad_true = new TH1F("hist_cc_ehad_true", "cc_ehad_true", 80, 0., 20.);
-	hist_cc_ehad_true->Sumw2();
-	TH1F *hist_cc_reco_true = new TH1F("hist_cc_reco_true", "cc_reco_true", 80, 0., 20.);
-	hist_cc_reco_true->Sumw2();
-	TH1F *hist_cc_El_true = new TH1F("hist_cc_El_true", "cc_El_true", 80, 0., 20.);
-	hist_cc_El_true->Sumw2();
-
-
-
-	TH1F *hist_nc_ehad = new TH1F("hist_nc_ehad", "nc_ehad", 80, 0., 20.);
-	hist_nc_ehad->Sumw2();
-	TH1F *hist_nc_reco = new TH1F("hist_nc_reco", "nc_reco", 80, 0., 20.);
-	hist_nc_reco->Sumw2();
-	TH1F *hist_nc_gamma = new TH1F("hist_nc_gamma", "nc_gamma", 80, 0., 20.);
-	hist_nc_gamma->Sumw2();
-
-
-	TH1F *hist_nc_ehad_true = new TH1F("hist_nc_ehad_true", "nc_ehad_true", 80, 0., 20.);
-	hist_nc_ehad_true->Sumw2();
-	TH1F *hist_nc_reco_true = new TH1F("hist_nc_reco_true", "nc_reco_true", 80, 0., 20.);
-	hist_nc_reco_true->Sumw2();
-	TH1F *hist_nc_gamma_true = new TH1F("hist_nc_gamma_true", "nc_gamma_true", 80, 0., 20.);
-	hist_nc_gamma_true->Sumw2();
-
-
-
-	SBN_detector DUNE_NC(5,false);
-
-	for(int i=0; i < gstree->GetEntries(); i++){
-		gstree->GetEntry(i);
-
-		bool mode = true;
-		if (neu<0){
-			mode = false;
+void genie_NC(gst_file * file){
+		if(!file->in_use.at(3)){
+			return;
 		}
 
-		if (cc) {
-			continue;
+		double POT_norm =file->norm;
+		/*"The signal for nue apperance is an excess of charged-current(CC) nue and nuebar interactions over the expected background in the far detector. The background to nue appearance is composed of : (1) CC interactions of nue and nuebar intrinsic to the beam; (2) misidentified numu and numubar CC events; (3) neutral current (NC) backgrounds and (4) nutau and nutaubar CC events in which the tau's decay leptonically into electrons/positrons. NC and nutau backgrounds are due to interactions of higher-energy neutrinos but they contribute to backgrounds mainly at low energy, which is important for the sensitivity to CP violation."*/
+
+		TRandom3 *rangen = new TRandom3(0);
+
+
+	//	TString filename = "gntp.0.numubar10k_gst";
+
+		// gntp.0.numuflux_nuebeam50k_gst
+		// gntp.0.nutaubar20k_gst
+		// gntp.0.nutau20k_gst
+		// gntp.0.nue20k_gst
+		// gntp.0.nuebar20k_gst
+		// gntp.0.numu50k_gst
+		// gntp.0.numubarflux_nuebarbeam10k_gst
+		// gntp.0.numubar10k_gst
+
+		TFile *f = new TFile(TString("../gst0to40/")+file->filename+TString(".root"));
+		TTree *gstree = (TTree*)f->Get("gst");
+
+		TFile *fnew = new TFile(TString("../gst0to40/out/")+file->filename+TString("_NC_study_out.root"),"recreate");
+
+		TFile * fntuple = new TFile("DUNE_ntuple.root","UPDATE");
+
+
+
+		std::vector<std::string> subchannels = file->hists;
+
+		std::vector<TTree*> list_o_trees;
+
+		double m_Ereco=0;
+		double m_Etrue=0;
+		double m_l=0;
+		double m_weight=0;
+		int m_nutype=0;
+		int m_ngen=0;
+
+
+
+		for(auto s: subchannels){
+			if(s=="") continue;
+			if(fntuple->GetListOfKeys()->Contains(s.c_str())){
+				std::cout<<s<<" exists in file."<<std::endl;
+				list_o_trees.push_back( (TTree*)fntuple->Get(s.c_str()) );	
+				list_o_trees.back()->SetBranchAddress("Ereco",&m_Ereco );
+				list_o_trees.back()->SetBranchAddress("Etrue",&m_Etrue );
+				list_o_trees.back()->SetBranchAddress("L",&m_l);
+				list_o_trees.back()->SetBranchAddress("Weight",&m_weight);
+				list_o_trees.back()->SetBranchAddress("NuType",&m_nutype);
+				list_o_trees.back()->SetBranchAddress("NGen",&m_ngen);
+
+
+			}else{
+				std::cout<<s<<" does not exist in file, creating it."<<std::endl;
+				list_o_trees.push_back(  new TTree(s.c_str(), s.c_str())  );
+				list_o_trees.back()->Branch("Ereco",&m_Ereco ,"Ereco/D");
+				list_o_trees.back()->Branch("Etrue",&m_Etrue,"Etrue/D" );
+				list_o_trees.back()->Branch("L",&m_l, "L/D" );
+				list_o_trees.back()->Branch("Weight",&m_weight, "Weight/D");
+				list_o_trees.back()->Branch("NuType",&m_nutype, "NuType/I");
+				list_o_trees.back()->Branch("NGen",&m_ngen, "NGen/I");
+
+			}
 		}
 
 
-		//Is there a visible vertex and how much energy is there!
-		double Enu_reco = 0;
-		double Ehad=0;
-		double Ehad_true=0.;
-
-		double Pxhad =0;
-		double Pyhad =0;
-		double Pzhad =0;
-
-		bool vis_vertex = false;
 
 
-		if(nf!=0){
-			double kin_true =0;
-			double kin_smeared = 0;
 
-			for(int j=0; j<nf; j++){
+		int neu;
+		double energyf[100];
+		double pf[100];
+		int pdgf[100];
+		double Q2;
+		int nf;
+		bool cc;
+		bool nc;
+		int fspl;
+		double El;
+		double Ev;
+		double pxl;
+		double pyl;
+		double pzl;
+		int nfpi0;
+		int Np;
+		int Npip;
+		int Npim;
+		int Nph;
+		int No;
+		double pxf[100];
+		double pyf[100];
+		double pzf[100];
 
-				if(pdgf[j]==2212){
-					//cout << " proton mass : " << sqrt(energyf[j]*energyf[j] - pxf[j]*pxf[j]-pyf[j]*pyf[j]-pzf[j]*pzf[j])<< endl;
-					kin_true=energyf[j]-MPROTON;
-					//kin_smeared=smear_energy(kin_true, psmear, rangen);
-					kin_smeared=smear_energy_type(pdgf[j], kin_true, rangen);
-					if (kin_smeared > p_thresh){
-						Ehad += kin_smeared;
+		double Ep[100];
+		double Epip[100];
+		double Epim[100];
+		int    pdgo[100];
+		double Eo[100];
+		double Eph[100];
 
-						Ehad_true += kin_true;
+		//double EM_thresh =0.03;
+		double egamma_misidrate=0.06;
+		double cc_efficiency=0.8;
+		double pion_mass = 0.13498;
+		double convlength_thresh = 5.;//using 5cm for photon conversion length threshold.
+		double NEUTRON_FACTOR = 0.6;
+
+
+		gstree->SetBranchAddress("neu",&neu);
+		gstree->SetBranchAddress("Ef",&energyf);
+		gstree->SetBranchAddress("Ev",&Ev);
+		gstree->SetBranchAddress("pf",&pf);
+		gstree->SetBranchAddress("pxf",&pxf);
+		gstree->SetBranchAddress("pyf",&pyf);
+		gstree->SetBranchAddress("pzf",&pzf);
+		gstree->SetBranchAddress("pdgf",&pdgf);
+		gstree->SetBranchAddress("Q2",&Q2);
+		gstree->SetBranchAddress("nf",&nf);
+		gstree->SetBranchAddress("cc",&cc);
+		gstree->SetBranchAddress("nc",&nc);
+		gstree->SetBranchAddress("fspl",&fspl);//final state pdg lepton?
+		gstree->SetBranchAddress("El",&El);
+		gstree->SetBranchAddress("pxl",&pxl);
+		gstree->SetBranchAddress("pyl",&pyl);
+		gstree->SetBranchAddress("pzl",&pzl);
+
+		TH1F *hist_sizeofgammas = new TH1F("hist_sizeofgammas", "sizeofgammas", 10, 0., 10.);
+		hist_sizeofgammas->Sumw2();
+
+		TH1F *hist_PT = new TH1F("hist_PT", "PT", 80, 0., 2.);
+		hist_PT->Sumw2();
+
+		TH1F *hist_lepton_PT = new TH1F("hist_lepton_PT", "lepton_PT", 80, 0., 2.);
+		hist_lepton_PT->Sumw2();
+
+		TH2F *hist_PT_vs_lepton_PT = new TH2F("hist_PT_vs_lepton_PT", "PT_vs_lepton_EP", 80, 0., 2.,80.,0.,2.);
+		hist_PT_vs_lepton_PT->Sumw2();
+
+		TH1F *hist_twoneutrinos_PT = new TH1F("hist_twoneutrinos_PT", "twoneutrinos_PT", 80, 0., 2.);
+		hist_twoneutrinos_PT->Sumw2();
+
+		TH1F *hist_sizeofbackgroundgammas = new TH1F("hist_sizeofbackgroundgammas", "sizeofbackgroundgammas", 5, 0., 5.);
+		hist_sizeofbackgroundgammas->Sumw2();
+		TH1F *hist_sizeofisphoton = new TH1F("hist_sizeofisphoton", "sizeofisphoton", 5, 0., 5.);
+		hist_sizeofisphoton->Sumw2();
+
+
+		//TH1F *hist_singlegamma = new TH1F("hist_singlegamma", "singlegamma", 80, 0., 20.);
+		//hist_singlegamma->Sumw2();
+
+
+
+		//TH1F *hist_backgroundsinglegamma_test = new TH1F("hist_backgroundsinglegamma_test", "backgroundsinglegamma_test", 80, 0., 20.);
+		//hist_backgroundsinglegamma_test->Sumw2();
+
+		TH1F *hist_gamma1phi = new TH1F("hist_gamma1phi", "gamma1phi", 20., -5., 5.);
+		hist_gamma1phi->Sumw2();
+		TH1F *hist_gamma1costheta = new TH1F("hist_gamma1costheta", "gamma1costheta", 20., -1., 1.);
+		hist_gamma1costheta->Sumw2();
+		TH1F *hist_gamma1sintheta = new TH1F("hist_gamma1sintheta", "gamma1sintheta", 20., -1., 1.);
+		hist_gamma1sintheta->Sumw2();
+
+		TH1F *hist_angle_separation = new TH1F("hist_angle_separation", "angle_separation", 100., 0., 3.14);
+		hist_angle_separation->Sumw2();
+
+		TH1F *hist_angle_separation2 = new TH1F("hist_angle_separation2", "angle_separation2", 100., 0., 3.14);
+		hist_angle_separation2->Sumw2();
+
+		TH1F *hist_2gammainvmass = new TH1F("hist_2gammainvmass", "2gammainvmass", 20., 0., 0.2);
+		hist_2gammainvmass->Sumw2();
+
+		TH1F *hist_vis_vertex = new TH1F("hist_vis_vertex", "hist_vis_vertex", 2., 0., 2.);
+		hist_vis_vertex->Sumw2();
+
+		TH2F *hist_convlength_vs_E = new TH2F("hist_convlength_vs_E", "convlength_vs_E",20,0.,10.,20,0.,100.);
+		hist_convlength_vs_E->Sumw2();
+
+		TH2F *hist_dalitz = new TH2F("hist_dalitz", "dalitz",200,0.,5.,200,0.,5.);
+		hist_dalitz->Sumw2();
+
+
+		TH1F *hist_convlength = new TH1F("hist_convlength", "convlength",20,0.,100.);
+		hist_convlength->Sumw2();
+
+		TH1F *hist_cc_ehad = new TH1F("hist_cc_ehad", "cc_ehad", 80, 0., 20.);
+		hist_cc_ehad->Sumw2();
+		TH1F *hist_cc_reco = new TH1F("hist_cc_reco", "cc_reco", 80, 0., 20.);
+		hist_cc_reco->Sumw2();
+		TH1F *hist_cc_El = new TH1F("hist_cc_El", "cc_El", 80, 0., 20.);
+		hist_cc_El->Sumw2();
+
+		TH1F *hist_cc_ehad_true = new TH1F("hist_cc_ehad_true", "cc_ehad_true", 80, 0., 20.);
+		hist_cc_ehad_true->Sumw2();
+		TH1F *hist_cc_reco_true = new TH1F("hist_cc_reco_true", "cc_reco_true", 80, 0., 20.);
+		hist_cc_reco_true->Sumw2();
+		TH1F *hist_cc_El_true = new TH1F("hist_cc_El_true", "cc_El_true", 80, 0., 20.);
+		hist_cc_El_true->Sumw2();
+
+
+
+		TH1F *hist_nc_ehad = new TH1F("hist_nc_ehad", "nc_ehad", 80, 0., 20.);
+		hist_nc_ehad->Sumw2();
+		TH1F *hist_nc_reco = new TH1F("hist_nc_reco", "nc_reco", 80, 0., 20.);
+		hist_nc_reco->Sumw2();
+		TH1F *hist_nc_gamma = new TH1F("hist_nc_gamma", "nc_gamma", 80, 0., 20.);
+		hist_nc_gamma->Sumw2();
+
+
+		TH1F *hist_nc_ehad_true = new TH1F("hist_nc_ehad_true", "nc_ehad_true", 80, 0., 20.);
+		hist_nc_ehad_true->Sumw2();
+		TH1F *hist_nc_reco_true = new TH1F("hist_nc_reco_true", "nc_reco_true", 80, 0., 20.);
+		hist_nc_reco_true->Sumw2();
+		TH1F *hist_nc_gamma_true = new TH1F("hist_nc_gamma_true", "nc_gamma_true", 80, 0., 20.);
+		hist_nc_gamma_true->Sumw2();
+
+
+
+		SBN_detector DUNE_NC(5,false);
+
+		for(int i=0; i < gstree->GetEntries(); i++){
+			gstree->GetEntry(i);
+
+			bool mode = true;
+			if (neu<0){
+				mode = false;
+			}
+
+			if (cc) {
+				continue;
+			}
+
+
+			//Is there a visible vertex and how much energy is there!
+			double Enu_reco = 0;
+			double Ehad=0;
+			double Ehad_true=0.;
+
+			double Pxhad =0;
+			double Pyhad =0;
+			double Pzhad =0;
+
+			bool vis_vertex = false;
+
+
+			if(nf!=0){
+				double kin_true =0;
+				double kin_smeared = 0;
+
+				for(int j=0; j<nf; j++){
+
+					if(pdgf[j]==2212){
+						//cout << " proton mass : " << sqrt(energyf[j]*energyf[j] - pxf[j]*pxf[j]-pyf[j]*pyf[j]-pzf[j]*pzf[j])<< endl;
+						kin_true=energyf[j]-MPROTON;
+						//kin_smeared=smear_energy(kin_true, psmear, rangen);
+						kin_smeared=smear_energy_type(pdgf[j], kin_true, rangen);
+						if (kin_smeared > p_thresh){
+							Ehad += kin_smeared;
+
+							Ehad_true += kin_true;
+
+							Pxhad += pxf[j];
+							Pyhad += pyf[j];
+							Pzhad += pzf[j];
+						}
+					}
+					else if(abs(pdgf[j])==211){
+						//cout << " pion mass : " << sqrt(energyf[j]*energyf[j] - pxf[j]*pxf[j]-pyf[j]*pyf[j]-pzf[j]*pzf[j])<< endl;
+						kin_true=energyf[j]-MPION;
+						//  kin_smeared=smear_energy(kin_true, pismear, rangen);
+						kin_smeared=smear_energy_type(pdgf[j], kin_true, 1, rangen);
+						if (kin_smeared > pip_thresh) {
+							Ehad += kin_smeared+MPION;
+
+							Ehad_true += kin_true+MPION;
+
+							Pxhad += pxf[j];
+							Pyhad += pyf[j];
+							Pzhad += pzf[j];
+						}
+					}
+					//else if(pdgf[j]==22){
+					//   kin_true=energyf[j];
+					//    kin_smeared=smear_energy(kin_true, EMsmear, rangen);
+					//    Ehad += kin_smeared;
+					//}
+					else if(pdgf[j]==2112){// do i need to add neutron mass? or
+						//cout << " neutron mass : " << sqrt(energyf[j]*energyf[j] - pxf[j]*pxf[j]-pyf[j]*pyf[j]-pzf[j]*pzf[j])<< endl;
+						kin_true=energyf[j]-MNEUTRON;
+						//  kin_smeared=smear_energy(kin_true, nsmear, rangen);
+						kin_smeared=smear_energy_type(pdgf[j], kin_true, rangen);
+						if (kin_smeared > n_thresh) {
+							Ehad += NEUTRON_FACTOR*kin_smeared;
+
+							Ehad_true += NEUTRON_FACTOR*kin_true;
+
+							Pxhad += pxf[j];
+							Pyhad += pyf[j];
+							Pzhad += pzf[j];
+						}//define NEUTRO FACTOR = 0.6 later.//mesons we add rest mass+kinetic energy, baryons we add kinetic energy
+					}
+					else if(pdgf[j]==321 || pdgf[j]==-321){
+						//cout << " kaon321 mass : " << sqrt(energyf[j]*energyf[j] - pxf[j]*pxf[j]-pyf[j]*pyf[j]-pzf[j]*pzf[j])<< endl;
+						kin_true=energyf[j]-MKAON321;
+						// kin_smeared=smear_energy(kin_true, osmear, rangen);
+						kin_smeared=smear_energy_type(pdgf[j], kin_true, rangen);
+						Ehad += kin_smeared+MKAON321;
+
+						Ehad_true += kin_true+MKAON321;
+
+						Pxhad += pxf[j];
+						Pyhad += pyf[j];
+						Pzhad += pzf[j];
+					}
+					else if(pdgf[j]==311){
+						//cout << " kaon311 mass : " << sqrt(energyf[j]*energyf[j] - pxf[j]*pxf[j]-pyf[j]*pyf[j]-pzf[j]*pzf[j])<< endl;
+						kin_true=energyf[j]-MKAON311;
+						// kin_smeared=smear_energy(kin_true, osmear, rangen);
+						kin_smeared=smear_energy_type(pdgf[j], kin_true, rangen);
+						Ehad += kin_smeared+MKAON311;
+
+						Ehad_true += kin_true+MKAON311;
+
+						Pxhad += pxf[j];
+						Pyhad += pyf[j];
+						Pzhad += pzf[j];
+					}
+					else if(pdgf[j]==3222){
+						//cout << " sigma mass3222 : " << sqrt(energyf[j]*energyf[j] - pxf[j]*pxf[j]-pyf[j]*pyf[j]-pzf[j]*pzf[j])<< endl;
+						kin_true=energyf[j]-MSIGMA3222;
+						// kin_smeared=smear_energy(kin_true, osmear, rangen);
+						kin_smeared=smear_energy_type(pdgf[j], kin_true, rangen);
+						Ehad += kin_smeared+MSIGMA3222;
+						Ehad_true += kin_true+MSIGMA3222;
+
+						Pxhad += pxf[j];
+						Pyhad += pyf[j];
+						Pzhad += pzf[j];
+					}
+					else if(pdgf[j]==3112){
+						//cout << " sigma mass3112 : " << sqrt(energyf[j]*energyf[j] - pxf[j]*pxf[j]-pyf[j]*pyf[j]-pzf[j]*pzf[j])<< endl;
+						kin_true=energyf[j]-MSIGMA3112;
+						// kin_smeared=smear_energy(kin_true, osmear, rangen);
+						kin_smeared=smear_energy_type(pdgf[j], kin_true, rangen);
+						Ehad += kin_smeared+MSIGMA3112;
+						Ehad_true += kin_true+MSIGMA3112;
+
+						Pxhad += pxf[j];
+						Pyhad += pyf[j];
+						Pzhad += pzf[j];
+					}
+					else if(pdgf[j]==3122){
+						//cout << " sigma mass3122 : " << sqrt(energyf[j]*energyf[j] - pxf[j]*pxf[j]-pyf[j]*pyf[j]-pzf[j]*pzf[j])<< endl;
+						kin_true=energyf[j]-MSIGMA3122;
+						// kin_smeared=smear_energy(kin_true, osmear, rangen);
+						kin_smeared=smear_energy_type(pdgf[j], kin_true, rangen);
+						Ehad += kin_smeared+MSIGMA3122;
+						Ehad_true += kin_true+MSIGMA3122;
 
 						Pxhad += pxf[j];
 						Pyhad += pyf[j];
 						Pzhad += pzf[j];
 					}
 				}
-				else if(abs(pdgf[j])==211){
-					//cout << " pion mass : " << sqrt(energyf[j]*energyf[j] - pxf[j]*pxf[j]-pyf[j]*pyf[j]-pzf[j]*pzf[j])<< endl;
-					kin_true=energyf[j]-MPION;
-					//  kin_smeared=smear_energy(kin_true, pismear, rangen);
-					kin_smeared=smear_energy_type(pdgf[j], kin_true, 1, rangen);
-					if (kin_smeared > pip_thresh) {
-						Ehad += kin_smeared+MPION;
-
-						Ehad_true += kin_true+MPION;
-
-						Pxhad += pxf[j];
-						Pyhad += pyf[j];
-						Pzhad += pzf[j];
-					}
-				}
-				//else if(pdgf[j]==22){
-				//   kin_true=energyf[j];
-				//    kin_smeared=smear_energy(kin_true, EMsmear, rangen);
-				//    Ehad += kin_smeared;
-				//}
-				else if(pdgf[j]==2112){// do i need to add neutron mass? or
-					//cout << " neutron mass : " << sqrt(energyf[j]*energyf[j] - pxf[j]*pxf[j]-pyf[j]*pyf[j]-pzf[j]*pzf[j])<< endl;
-					kin_true=energyf[j]-MNEUTRON;
-					//  kin_smeared=smear_energy(kin_true, nsmear, rangen);
-					kin_smeared=smear_energy_type(pdgf[j], kin_true, rangen);
-					if (kin_smeared > n_thresh) {
-						Ehad += NEUTRON_FACTOR*kin_smeared;
-
-						Ehad_true += NEUTRON_FACTOR*kin_true;
-
-						Pxhad += pxf[j];
-						Pyhad += pyf[j];
-						Pzhad += pzf[j];
-					}//define NEUTRO FACTOR = 0.6 later.//mesons we add rest mass+kinetic energy, baryons we add kinetic energy
-				}
-				else if(pdgf[j]==321 || pdgf[j]==-321){
-					//cout << " kaon321 mass : " << sqrt(energyf[j]*energyf[j] - pxf[j]*pxf[j]-pyf[j]*pyf[j]-pzf[j]*pzf[j])<< endl;
-					kin_true=energyf[j]-MKAON321;
-					// kin_smeared=smear_energy(kin_true, osmear, rangen);
-					kin_smeared=smear_energy_type(pdgf[j], kin_true, rangen);
-					Ehad += kin_smeared+MKAON321;
-
-					Ehad_true += kin_true+MKAON321;
-
-					Pxhad += pxf[j];
-					Pyhad += pyf[j];
-					Pzhad += pzf[j];
-				}
-				else if(pdgf[j]==311){
-					//cout << " kaon311 mass : " << sqrt(energyf[j]*energyf[j] - pxf[j]*pxf[j]-pyf[j]*pyf[j]-pzf[j]*pzf[j])<< endl;
-					kin_true=energyf[j]-MKAON311;
-					// kin_smeared=smear_energy(kin_true, osmear, rangen);
-					kin_smeared=smear_energy_type(pdgf[j], kin_true, rangen);
-					Ehad += kin_smeared+MKAON311;
-
-					Ehad_true += kin_true+MKAON311;
-
-					Pxhad += pxf[j];
-					Pyhad += pyf[j];
-					Pzhad += pzf[j];
-				}
-				else if(pdgf[j]==3222){
-					//cout << " sigma mass3222 : " << sqrt(energyf[j]*energyf[j] - pxf[j]*pxf[j]-pyf[j]*pyf[j]-pzf[j]*pzf[j])<< endl;
-					kin_true=energyf[j]-MSIGMA3222;
-					// kin_smeared=smear_energy(kin_true, osmear, rangen);
-					kin_smeared=smear_energy_type(pdgf[j], kin_true, rangen);
-					Ehad += kin_smeared+MSIGMA3222;
-					Ehad_true += kin_true+MSIGMA3222;
-
-					Pxhad += pxf[j];
-					Pyhad += pyf[j];
-					Pzhad += pzf[j];
-				}
-				else if(pdgf[j]==3112){
-					//cout << " sigma mass3112 : " << sqrt(energyf[j]*energyf[j] - pxf[j]*pxf[j]-pyf[j]*pyf[j]-pzf[j]*pzf[j])<< endl;
-					kin_true=energyf[j]-MSIGMA3112;
-					// kin_smeared=smear_energy(kin_true, osmear, rangen);
-					kin_smeared=smear_energy_type(pdgf[j], kin_true, rangen);
-					Ehad += kin_smeared+MSIGMA3112;
-					Ehad_true += kin_true+MSIGMA3112;
-
-					Pxhad += pxf[j];
-					Pyhad += pyf[j];
-					Pzhad += pzf[j];
-				}
-				else if(pdgf[j]==3122){
-					//cout << " sigma mass3122 : " << sqrt(energyf[j]*energyf[j] - pxf[j]*pxf[j]-pyf[j]*pyf[j]-pzf[j]*pzf[j])<< endl;
-					kin_true=energyf[j]-MSIGMA3122;
-					// kin_smeared=smear_energy(kin_true, osmear, rangen);
-					kin_smeared=smear_energy_type(pdgf[j], kin_true, rangen);
-					Ehad += kin_smeared+MSIGMA3122;
-					Ehad_true += kin_true+MSIGMA3122;
-
-					Pxhad += pxf[j];
-					Pyhad += pyf[j];
-					Pzhad += pzf[j];
-				}
 			}
-		}
 
 
-		//Check if we actually have a "visibe vertex"
-		if(Ehad >= vertex_thresh)
-		{
-			vis_vertex = true;
-		}
-		hist_vis_vertex->Fill(vis_vertex);
+			//Check if we actually have a "visibe vertex"
+			if(Ehad >= vertex_thresh)
+			{
+				vis_vertex = true;
+			}
+			hist_vis_vertex->Fill(vis_vertex);
 
 
-		//Nrevertex. for stats.
-		int Nrevertex = 25;
-		for(int k=0;k<Nrevertex; k++){
+			//Nrevertex. for stats.
+			int Nrevertex = 1;
+			for(int k=0;k<Nrevertex; k++){
 
-			double vertex_weight = 1.0/((double) Nrevertex);
-
-
-			//double vertex_pos[3];
-
-			double vertex_pos_NC[3];
-
-			//DUNE.random_pos(rangen, vertex_pos);
-			DUNE_NC.random_pos(rangen, vertex_pos_NC);
+				double vertex_weight = 1.0/((double) Nrevertex);
 
 
+				//double vertex_pos[3];
 
-			//photon flow
-			std::vector<myphoton> gammas;
-			std::vector<myphoton> gammas_true;
+				double vertex_pos_NC[3];
 
-			//       std::vector<myphoton> gammas_smeared;
-
-			// TLorentzVector final_gamma[10];
-			//radiation gammas
-			if (nf!=0){
-				for(int j=0; j<nf;j++ ){
-
-					if(pdgf[j]==22){ //energyf[j]>EM_thresh
-
-						myphoton temp_vec;
-						temp_vec.lorentz.SetPxPyPzE(pxf[j],pyf[j],pzf[j],energyf[j]);
+				//DUNE.random_pos(rangen, vertex_pos);
+				DUNE_NC.random_pos(rangen, vertex_pos_NC);
 
 
-						double temp_energy_smeared = smear_energy(energyf[j], EMsmear,rangen);
 
-						if (temp_energy_smeared > EM_thresh) {
+				//photon flow
+				std::vector<myphoton> gammas;
+				std::vector<myphoton> gammas_true;
 
-							gammas_true.push_back(temp_vec);
+				//       std::vector<myphoton> gammas_smeared;
 
-							temp_vec.lorentz.SetE(temp_energy_smeared);
-							gammas.push_back(temp_vec);
+				// TLorentzVector final_gamma[10];
+				//radiation gammas
+				if (nf!=0){
+					for(int j=0; j<nf;j++ ){
 
-							gammas.back().isPion=0;
+						if(pdgf[j]==22){ //energyf[j]>EM_thresh
 
+							myphoton temp_vec;
+							temp_vec.lorentz.SetPxPyPzE(pxf[j],pyf[j],pzf[j],energyf[j]);
+
+
+							double temp_energy_smeared = smear_energy(energyf[j], EMsmear,rangen);
+
+							if (temp_energy_smeared > EM_thresh) {
+
+								gammas_true.push_back(temp_vec);
+
+								temp_vec.lorentz.SetE(temp_energy_smeared);
+								gammas.push_back(temp_vec);
+
+								gammas.back().isPion=0;
+
+							}
 						}
 					}
 				}
-			}
 
-			//pi0 gammas
-			if (nf!=0){
+				//pi0 gammas
+				if (nf!=0){
 
-				for(int k=0;k<nf;k++){
+					for(int k=0;k<nf;k++){
 
-					if(pdgf[k]==111){
+						if(pdgf[k]==111){
 
-						double boost[3] = {pxf[k]/energyf[k],pyf[k]/energyf[k],pzf[k]/energyf[k]};//boost vector for pi0
+							double boost[3] = {pxf[k]/energyf[k],pyf[k]/energyf[k],pzf[k]/energyf[k]};//boost vector for pi0
 
-						double x=0;
-						double y=0;
-						double z=0;
+							double x=0;
+							double y=0;
+							double z=0;
 
-						rangen->Sphere(x,y,z,1.);//generate random direction on a unit sphere.
+							rangen->Sphere(x,y,z,1.);//generate random direction on a unit sphere.
 
-						myphoton gamma1, gamma2;
+							myphoton gamma1, gamma2;
 
 
-						gamma1.lorentz.SetPxPyPzE(x*pion_mass/2,y*pion_mass/2,z*pion_mass/2,pion_mass/2);// assigning gamma1 along the random direction
-						gamma2.lorentz.SetPxPyPzE(-x*pion_mass/2,-y*pion_mass/2,-z*pion_mass/2,pion_mass/2);// assigning gamma2 to the opposite directon of gamma1, each of these has a half of pion rest energy.
+							gamma1.lorentz.SetPxPyPzE(x*pion_mass/2,y*pion_mass/2,z*pion_mass/2,pion_mass/2);// assigning gamma1 along the random direction
+							gamma2.lorentz.SetPxPyPzE(-x*pion_mass/2,-y*pion_mass/2,-z*pion_mass/2,pion_mass/2);// assigning gamma2 to the opposite directon of gamma1, each of these has a half of pion rest energy.
 
-						hist_gamma1phi->Fill(gamma1.lorentz.Phi());
-						hist_gamma1costheta->Fill(cos(gamma1.lorentz.Theta()));
-						hist_gamma1sintheta->Fill(sin(gamma1.lorentz.Theta()));
-						//cos(gamma1.Theta());
-						//cout << "gamma1 phi : " << gamma1.lorentz.Phi() << endl;
+							hist_gamma1phi->Fill(gamma1.lorentz.Phi());
+							hist_gamma1costheta->Fill(cos(gamma1.lorentz.Theta()));
+							hist_gamma1sintheta->Fill(sin(gamma1.lorentz.Theta()));
+							//cos(gamma1.Theta());
+							//cout << "gamma1 phi : " << gamma1.lorentz.Phi() << endl;
 
-						gamma1.lorentz.Boost(pxf[k]/energyf[k],pyf[k]/energyf[k],pzf[k]/energyf[k]);//boost gamma1 and gamma2 to original pi0 frame.
-						gamma2.lorentz.Boost(pxf[k]/energyf[k],pyf[k]/energyf[k],pzf[k]/energyf[k]);
-						// check invariant amss of gamma1 gamm2 pair ==mpion
-						hist_2gammainvmass->Fill((gamma1.lorentz+gamma2.lorentz).M());
-						double angle_separation = gamma1.lorentz.Angle(gamma2.lorentz.BoostVector());
-						double angle_separation2 = gamma1.lorentz.BoostVector().Angle(gamma2.lorentz.BoostVector());
+							gamma1.lorentz.Boost(pxf[k]/energyf[k],pyf[k]/energyf[k],pzf[k]/energyf[k]);//boost gamma1 and gamma2 to original pi0 frame.
+							gamma2.lorentz.Boost(pxf[k]/energyf[k],pyf[k]/energyf[k],pzf[k]/energyf[k]);
+							// check invariant amss of gamma1 gamm2 pair ==mpion
+							hist_2gammainvmass->Fill((gamma1.lorentz+gamma2.lorentz).M());
+							double angle_separation = gamma1.lorentz.Angle(gamma2.lorentz.BoostVector());
+							double angle_separation2 = gamma1.lorentz.BoostVector().Angle(gamma2.lorentz.BoostVector());
 
-						hist_angle_separation->Fill(angle_separation);
-						hist_angle_separation2->Fill(angle_separation2);
+							hist_angle_separation->Fill(angle_separation);
+							hist_angle_separation2->Fill(angle_separation2);
 
-						double temp_energy_smeared1= smear_energy(gamma1.lorentz.E(), EMsmear,rangen);
-						double temp_energy_smeared2= smear_energy(gamma2.lorentz.E(), EMsmear,rangen);
+							double temp_energy_smeared1= smear_energy(gamma1.lorentz.E(), EMsmear,rangen);
+							double temp_energy_smeared2= smear_energy(gamma2.lorentz.E(), EMsmear,rangen);
 
-						if (temp_energy_smeared1 > EM_thresh) {
-							gamma1.isPion=1;
-							gammas_true.push_back(gamma1);
+							if (temp_energy_smeared1 > EM_thresh) {
+								gamma1.isPion=1;
+								gammas_true.push_back(gamma1);
 
-							gamma1.lorentz.SetE(temp_energy_smeared1);
-							gammas.push_back(gamma1);
-							//pion_gamma_count++;
+								gamma1.lorentz.SetE(temp_energy_smeared1);
+								gammas.push_back(gamma1);
+								//pion_gamma_count++;
+
+							}
+							if (temp_energy_smeared2 > EM_thresh) {
+								gamma2.isPion=1;
+
+								gammas_true.push_back(gamma2);
+
+								gamma2.lorentz.SetE(temp_energy_smeared2);
+								gammas.push_back(gamma2);
+								//pion_gamma_count++;
+
+							}
 
 						}
-						if (temp_energy_smeared2 > EM_thresh) {
-							gamma2.isPion=1;
 
-							gammas_true.push_back(gamma2);
-
-							gamma2.lorentz.SetE(temp_energy_smeared2);
-							gammas.push_back(gamma2);
-							//pion_gamma_count++;
-
-						}
 
 					}
 
 
 				}
 
+				if (gammas.size()>0){
+					//cout << "# of gammas over EM_thresh : " << gammas.size() << ", first gamma energy : "<< gammas.at(0).lorentz.E()<< endl;
+				}// we have everyting in gammas.
 
-			}
+				double convlength[gammas.size()];
+				double convpoint[gammas.size()][3];
 
-			if (gammas.size()>0){
-				//cout << "# of gammas over EM_thresh : " << gammas.size() << ", first gamma energy : "<< gammas.at(0).lorentz.E()<< endl;
-			}// we have everyting in gammas.
-
-			double convlength[gammas.size()];
-			double convpoint[gammas.size()][3];
-
-			// cout << "vertex point x: " <<vertex_pos[0] << ", y: "<<vertex_pos[1]<<", z:"<< vertex_pos[2]<<  endl;
+				// cout << "vertex point x: " <<vertex_pos[0] << ", y: "<<vertex_pos[1]<<", z:"<< vertex_pos[2]<<  endl;
 
 
-			for (int j=0; j< gammas.size(); j++){
-				//convlength[j] = photon_conversion_length(gammas.at(j).lorentz.E(), rangen);
-				convlength[j] = photon_conversion_length(gammas.at(j).lorentz.E(), rangen);
-				gammas.at(j).convlength=convlength[j];
+				for (int j=0; j< gammas.size(); j++){
+					//convlength[j] = photon_conversion_length(gammas.at(j).lorentz.E(), rangen);
+					convlength[j] = photon_conversion_length(gammas.at(j).lorentz.E(), rangen);
+					gammas.at(j).convlength=convlength[j];
 
-				double temp_3vec[3] = {gammas.at(j).lorentz.Px(),gammas.at(j).lorentz.Py(),gammas.at(j).lorentz.Pz()};
+					double temp_3vec[3] = {gammas.at(j).lorentz.Px(),gammas.at(j).lorentz.Py(),gammas.at(j).lorentz.Pz()};
 
 
-				int k = get_endpoint(vertex_pos_NC, convlength[j], temp_3vec, convpoint[j]);
-				gammas.at(j).convpoint=convpoint[j];
+					int k = get_endpoint(vertex_pos_NC, convlength[j], temp_3vec, convpoint[j]);
+					gammas.at(j).convpoint=convpoint[j];
 
-				//  cout<<"conversion length: " << convlength[j]<< ", point x: " <<convpoint[j][0] << ", y: "<<convpoint[j][1]<<", z:"<< convpoint[j][2]<<  endl;
+					//  cout<<"conversion length: " << convlength[j]<< ", point x: " <<convpoint[j][0] << ", y: "<<convpoint[j][1]<<", z:"<< convpoint[j][2]<<  endl;
 
-				hist_convlength_vs_E->Fill(gammas.at(j).lorentz.E(),gammas.at(j).convlength,vertex_weight);
-				hist_convlength->Fill(gammas.at(j).convlength,vertex_weight);
+					hist_convlength_vs_E->Fill(gammas.at(j).lorentz.E(),gammas.at(j).convlength,vertex_weight);
+					hist_convlength->Fill(gammas.at(j).convlength,vertex_weight);
 
-			}
+				}
 
 
 
-			std::vector<myphoton> background_photons;
-			std::vector<myphoton> background_photons_true;
+				std::vector<myphoton> background_photons;
+				std::vector<myphoton> background_photons_true;
 
-			int photon_count = 0;
-			int background_count = 0;
+				int photon_count = 0;
+				int background_count = 0;
 
-			for (int m=0; m<gammas.size(); m++){
-				if (vis_vertex){
-					if (gammas.at(m).convlength > convlength_thresh){
-						if(DUNE_NC.is_fiducial(gammas.at(m).convpoint)) photon_count++;
+				for (int m=0; m<gammas.size(); m++){
+					if (vis_vertex){
+						if (gammas.at(m).convlength > convlength_thresh){
+							if(DUNE_NC.is_fiducial(gammas.at(m).convpoint)) photon_count++;
+						}
+						else{
+							if(DUNE_NC.is_fiducial(gammas.at(m).convpoint)){
+
+								background_count++;
+								background_photons.push_back(gammas.at(m));
+								background_photons_true.push_back(gammas_true.at(m));
+							}
+						}
+
 					}
-					else{
+					else {
 						if(DUNE_NC.is_fiducial(gammas.at(m).convpoint)){
-
 							background_count++;
 							background_photons.push_back(gammas.at(m));
 							background_photons_true.push_back(gammas_true.at(m));
 						}
 					}
-
 				}
-				else {
-					if(DUNE_NC.is_fiducial(gammas.at(m).convpoint)){
-						background_count++;
-						background_photons.push_back(gammas.at(m));
-						background_photons_true.push_back(gammas_true.at(m));
+
+
+
+
+
+				hist_sizeofbackgroundgammas->Fill(background_photons.size(),vertex_weight);
+
+				double Pxtot = Pxhad;
+				double Pytot = Pyhad;
+				double Pztot = Pzhad;
+
+				TLorentzVector MissingEnergy;
+
+
+
+
+
+				// NC
+				if (nc) {
+
+					// cout << "# of gammas in evt : " << final_gamma_count+pion_gamma_count << endl;
+
+					//hist_nofgamma->Fill(final_gamma_count+pion_gamma_count,vertex_weight);
+					hist_sizeofgammas->Fill(gammas.size(),vertex_weight);
+
+					hist_sizeofisphoton->Fill(photon_count,vertex_weight);
+
+					// NC single gamma background
+					if (background_photons.size()==1 && photon_count ==0){
+						hist_nc_gamma->Fill(background_photons.at(0).lorentz.E(),egamma_misidrate*vertex_weight);
+						hist_nc_reco->Fill(background_photons.at(0).lorentz.E()+Ehad,egamma_misidrate*vertex_weight);
+						hist_nc_ehad->Fill(Ehad,egamma_misidrate*vertex_weight);
+
+						hist_nc_gamma_true->Fill(background_photons_true.at(0).lorentz.E(),egamma_misidrate*vertex_weight);
+						hist_nc_reco_true->Fill(background_photons_true.at(0).lorentz.E()+Ehad_true,egamma_misidrate*vertex_weight);
+						hist_nc_ehad_true->Fill(Ehad_true,egamma_misidrate*vertex_weight);
+						//std::cout<<"#######"<<background_photons[1].lorentz.E()<<" "<<background_photons[0].lorentz.E()<<std::endl;
+						//std::cout<<"#######"<<background_photons.at(0).lorentz.E()<<std::endl;
+						//if(background_photons.at(0).isPion) hist_backgroundsinglegamma_test->Fill(background_photons.at(0).lorentz.E(),egamma_misidrate*vertex_weight);
+					
+						m_Ereco = background_photons.at(0).lorentz.E()+Ehad;
+						m_Etrue = Ev;
+						m_l = 1300 ;	
+						m_weight = egamma_misidrate*vertex_weight*POT_norm;
+						m_nutype = neu;
+						
+						if(file->in_use.at(3))  list_o_trees.at(0)->Fill();
+
 					}
-				}
-			}
+				}//NC end.
+
+			}//nrevertex end.
 
 
+		}//event loop end.
+
+		fnew->cd();
+		fnew->Write();
+
+		fntuple->cd();
+		for(auto &t: list_o_trees){
+			t->Write();
+		}
+		fntuple->Purge();
+		fntuple->Close();
 
 
-
-			hist_sizeofbackgroundgammas->Fill(background_photons.size(),vertex_weight);
-
-			double Pxtot = Pxhad;
-			double Pytot = Pyhad;
-			double Pztot = Pzhad;
-
-			TLorentzVector MissingEnergy;
-
-
-
-
-
-			// NC
-			if (nc) {
-
-				// cout << "# of gammas in evt : " << final_gamma_count+pion_gamma_count << endl;
-
-				//hist_nofgamma->Fill(final_gamma_count+pion_gamma_count,vertex_weight);
-				hist_sizeofgammas->Fill(gammas.size(),vertex_weight);
-
-				hist_sizeofisphoton->Fill(photon_count,vertex_weight);
-
-				// NC single gamma background
-				if (background_photons.size()==1 && photon_count ==0){
-					hist_nc_gamma->Fill(background_photons.at(0).lorentz.E(),egamma_misidrate*vertex_weight);
-					hist_nc_reco->Fill(background_photons.at(0).lorentz.E()+Ehad,egamma_misidrate*vertex_weight);
-					hist_nc_ehad->Fill(Ehad,egamma_misidrate*vertex_weight);
-
-					hist_nc_gamma_true->Fill(background_photons_true.at(0).lorentz.E(),egamma_misidrate*vertex_weight);
-					hist_nc_reco_true->Fill(background_photons_true.at(0).lorentz.E()+Ehad_true,egamma_misidrate*vertex_weight);
-					hist_nc_ehad_true->Fill(Ehad_true,egamma_misidrate*vertex_weight);
-					//std::cout<<"#######"<<background_photons[1].lorentz.E()<<" "<<background_photons[0].lorentz.E()<<std::endl;
-					//std::cout<<"#######"<<background_photons.at(0).lorentz.E()<<std::endl;
-					//if(background_photons.at(0).isPion) hist_backgroundsinglegamma_test->Fill(background_photons.at(0).lorentz.E(),egamma_misidrate*vertex_weight);
-				
-					m_Ereco = background_photons.at(0).lorentz.E()+Ehad;
-					m_Etrue = Ev;
-					m_l = 1300 ;	
-					m_weight = egamma_misidrate*vertex_weight*POT_norm;
-					m_nutype = neu;
-					//std::cout<<"NCC: "<<m_Ereco<<" "<<m_Etrue<<" "<<m_l<<" "<<m_weight<<" "<<m_nutype<<std::endl;
-					list_o_trees.at(0)->Fill();
-
-
-
-				}
-			}//NC end.
-
-		}//nrevertex end.
-
-
-	}//event loop end.
-
-	fnew->cd();
-	fnew->Write();
-
-	fntuple->cd();
-	for(auto &t: list_o_trees){
-		t->Write();
 	}
-	fntuple->Purge();
-	fntuple->Close();
-
-
-}
 
 
 
+	void run_all_genie_study(){
+		int FHC = 0;
+		int RHC = 1;
+		
+		int NU = 0;
+		int NUBAR = 1;
 
-void run_all_genie_study(){
+		//Neutrino Mode
+		gst_file * FHC_numu = new gst_file( "gntp.0.numu50k_gst",FHC,NU,1.10634);
+		gst_file* FHC_numubar= new gst_file( "gntp.0.numubar10k_gst",FHC,NUBAR,0.181760);
+		gst_file* FHC_nutaubar= new gst_file( "gntp.0.nutaubar20k_gst",FHC,NUBAR,0.090880);
+		gst_file* FHC_nutau= new gst_file( "gntp.0.nutau20k_gst",FHC,NU,2.76584);
+		gst_file* FHC_nue = new gst_file( "gntp.0.nue20k_gst",FHC,NU,0.0323551);
+		gst_file* FHC_nuebar= new gst_file( "gntp.0.nuebar20k_gst",FHC,NUBAR,0.00404113);
+		gst_file* FHC_numu_nuebeam= new gst_file( "gntp.0.numuflux_nuebeam50k_gst",FHC,NU,1.10634);
+		gst_file* FHC_numubar_nuebarbeam= new gst_file( "gntp.0.numubarflux_nuebarbeam10k_gst",FHC,NUBAR,0.181760);
 
-	TString nutaubar = "gntp.0.nutaubar20k_gst";
-	TString nutau = "gntp.0.nutau20k_gst";
-	TString nue  = "gntp.0.nue20k_gst";
-	TString nuebar = "gntp.0.nuebar20k_gst";
-	TString numu  = "gntp.0.numu50k_gst";
-	TString numubar = "gntp.0.numubar10k_gst";
+		// Sets the histograms that each stage of genie_study goes to we have intrinsic/fullosc, muonmisid, taumisid
+		// leave as empty string if nothing goes there for that sample
+		// constructs using 
+		FHC_numu->setHistLocations({"","elike_mumisid","","elike_ncmisid"});
+		FHC_numubar->setHistLocations({"","elike_mumisidbar","","elike_ncmisidbar"});
+		FHC_nutau->setHistLocations({"","","elike_taumisid",""});
+		FHC_nutaubar->setHistLocations({"","","elike_taumisidbar",""});
+		FHC_nue->setHistLocations({"elike_intrinsic","","",""});
+		FHC_nuebar->setHistLocations({"elike_intrinsicbar","","",""});
+		FHC_numu_nuebeam->setHistLocations({"elike_fullosc","","",""});
+		FHC_numubar_nuebarbeam->setHistLocations({"elike_fulloscbar","","",""});
 
-	TString numu_nuebeam = "gntp.0.numuflux_nuebeam50k_gst";
-	TString numubar_nuebarbeam = "gntp.0.numubarflux_nuebarbeam10k_gst";
-
-
-	std::cout<<"Starting CC nue."<<std::endl;
-	genie_study(nue,0, 1);
-	std::cout<<"Starting CC numu."<<std::endl;
-	genie_study(numu,0, 1);
-	std::cout<<"Starting CC nutau."<<std::endl;
-	genie_study(nutau,0, 1);
-
-	std::cout<<"Starting CC nuebar."<<std::endl;
-	genie_study(nuebar,0, -1);
-	std::cout<<"Starting CC numubar."<<std::endl;
-	genie_study(numubar,0, -1);
-	std::cout<<"Starting CC nutaubar."<<std::endl;
-	genie_study(nutaubar,0, -1);
-
-	std::cout<<"Starting wierd CC numu_nuebeam."<<std::endl;
-	genie_study(numu_nuebeam,0, 1);
-	std::cout<<"Starting wierd CC numubear_nuebarbeam."<<std::endl;
-	genie_study(numubar_nuebarbeam,0, -1);
-
-
-	std::cout<<"Starting NC numu."<<std::endl;
-	genie_NC(numu,0);
-	std::cout<<"Starting NC numubar."<<std::endl;
-	genie_NC(numubar,0);
+		std::vector<gst_file*> FHC_files = {FHC_numu, FHC_numubar, FHC_nutau, FHC_nutaubar, FHC_nue, FHC_nuebar, FHC_numu_nuebeam, FHC_numubar_nuebarbeam};
+		
 
 
-	TString BHCnutaubar = "gntp.0.RHC_FD_numubarflux_nutaubarbeam20k_gst";
-	TString BHCnutau = "gntp.0.RHC_FD_numuflux_nutaubeam10k_gst";
+		//Anti_neutrino Mode
+		gst_file* RHC_nutaubar= new gst_file( "gntp.0.RHC_FD_numubarflux_nutaubarbeam20k_gst",RHC,NUBAR,0.989670);
+		gst_file* RHC_nutau= new gst_file( "gntp.0.RHC_FD_numuflux_nutaubeam10k_gst",RHC,NU, 0.512185);
+		gst_file* RHC_nue = new gst_file( "gntp.0.RHC_FD_nueflux_nuebeam10k_gst",RHC,NU, 0.0215175);
+		gst_file* RHC_nuebar= new gst_file( "gntp.0.RHC_FD_nuebarflux_nuebarbeam10k_gst",RHC,NUBAR,0.0213827);
+		gst_file* RHC_numu = new gst_file( "gntp.0.RHC_FD_numuflux_numubeam20k_gst",RHC,NU,0.256093);
+		gst_file* RHC_numubar= new gst_file( "gntp.0.RHC_FD_numubarflux_numubarbeam50k_gst",RHC,NUBAR,0.395868);
+		gst_file* RHC_numu_nuebeam = new gst_file( "gntp.0.RHC_FD_numuflux_nuebeam10k_gst",RHC,NU,0.512185);
+		gst_file* RHC_numubar_nuebarbeam= new gst_file( "gntp.0.RHC_FD_numubarflux_nuebarbeam20k_gst",RHC,NUBAR,0.989670);
 
-	TString BHCnue  = "gntp.0.RHC_FD_nueflux_nuebeam10k_gst";
-	TString BHCnuebar = "gntp.0.RHC_FD_nuebarflux_nuebarbeam10k_gst";
+		RHC_numu->setHistLocations({"","elike_mumisid","","elike_ncmisid"});
+		RHC_numubar->setHistLocations({"","elike_mumisidbar","","elike_ncmisidbar"});
+		RHC_nutau->setHistLocations({"","","elike_taumisid",""});
+		RHC_nutaubar->setHistLocations({"","","elike_taumisidbar",""});
+		RHC_nue->setHistLocations({"elike_intrinsic","","",""});
+		RHC_nuebar->setHistLocations({"elike_intrinsicbar","","",""});
+		RHC_numu_nuebeam->setHistLocations({"elike_fullosc","","",""});
+		RHC_numubar_nuebarbeam->setHistLocations({"elike_fulloscbar","","",""});
 
-	TString BHCnumu  = "gntp.0.RHC_FD_numuflux_numubeam20k_gst";
-	TString BHCnumubar = "gntp.0.RHC_FD_numubarflux_numubarbeam50k_gst";
+			std::vector<gst_file*> RHC_files = {RHC_numu, RHC_numubar, RHC_nutau, RHC_nutaubar, RHC_nue, RHC_nuebar, RHC_numu_nuebeam, RHC_numubar_nuebarbeam};
 
-	TString BHCnumu_BHCnuebeam  = "gntp.0.RHC_FD_numuflux_nuebeam10k_gst";
-	TString BHCnumubar_BHCnuebarbeam = "gntp.0.RHC_FD_numubarflux_nuebarbeam20k_gst";
-
-
-	//anti 
-	std::cout<<"Starting CC nue."<<std::endl;
-	genie_study(BHCnue,1, 1);
-	std::cout<<"Starting CC BHCnumu."<<std::endl;
-	genie_study(BHCnumu,1, 1);
-	std::cout<<"Starting CC BHCnutau."<<std::endl;
-	genie_study(BHCnutau,1, 1);
-
-	std::cout<<"Starting CC BHCnuebar."<<std::endl;
-	genie_study(BHCnuebar,1, -1);
-	std::cout<<"Starting CC BHCnumubar."<<std::endl;
-	genie_study(BHCnumubar,1, -1);
-	std::cout<<"Starting CC BHCnutaubar."<<std::endl;
-	genie_study(BHCnutaubar,1, -1);
-
-	std::cout<<"Starting wierd CC BHCnumu_BHCnuebeam."<<std::endl;
-	genie_study(BHCnumu_BHCnuebeam,1, 1);
-	std::cout<<"Starting wierd CC BHCnumubear_BHCnuebarbeam."<<std::endl;
-	genie_study(BHCnumubar_BHCnuebarbeam,1, -1);
-
-
-	std::cout<<"Starting NC BHCnumu."<<std::endl;
-	genie_NC(BHCnumu,1);
-	std::cout<<"Starting NC BHCnumubar."<<std::endl;
-	genie_NC(BHCnumubar,1);
+		for(auto &f: FHC_files){
+			genie_study(f);
+			genie_NC(f);
+		}
+		
+		for(auto &f: RHC_files){
+			genie_study(f);
+			genie_NC(f);
+		}
+		
 
 
 	//std::cout<<"Starting wierd NC numu_nuebeam."<<std::endl;
