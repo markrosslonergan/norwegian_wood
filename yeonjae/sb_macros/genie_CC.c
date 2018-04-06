@@ -82,7 +82,7 @@ void genie_study(TString filename, int nu_mode){
 
 	//Fullosc sample is taken from the numu flux ran through GENIE as a nue beam
 	bool isfullosc=false;
-	if(filename == "gntp.0.numuflux_nuebeam50k_gst" || filename == "gntp.0.numubarflux_nuebarbeam50k_gst"){
+	if(filename == "gntp.0.numuflux_nuebeam50k_gst" || filename == "gntp.0.numubarflux_nuebarbeam10k_gst"){
 		isfullosc=true;
 	}
 
@@ -3426,17 +3426,17 @@ void run_all_genie_study(){
 
 	std::cout<<"Starting CC nue."<<std::endl;
 	genie_study(nue,0);
-	std::cout<<"Starting CC numu."<<std::endl;
+    std::cout<<"Starting CC numu."<<std::endl;
 	genie_study(numu,0);
 	std::cout<<"Starting CC nutau."<<std::endl;
-	genie_study(nutau,0);
+//	genie_study(nutau,0);
 
 	std::cout<<"Starting CC nuebar."<<std::endl;
 	genie_study(nuebar,0);
 	std::cout<<"Starting CC numubar."<<std::endl;
 	genie_study(numubar,0);
 	std::cout<<"Starting CC nutaubar."<<std::endl;
-	genie_study(nutaubar,0);
+//	genie_study(nutaubar,0);
 
 	std::cout<<"Starting wierd CC numu_nuebeam."<<std::endl;
 	genie_study(numu_nuebeam,0);
@@ -3444,7 +3444,7 @@ void run_all_genie_study(){
 	genie_study(numubar_nuebarbeam,0);
 
 
-	std::cout<<"Starting NC nue."<<std::endl;
+/*	std::cout<<"Starting NC nue."<<std::endl;
 	genie_NC(nue,0);
 	std::cout<<"Starting NC numu."<<std::endl;
 	genie_NC(numu,0);
@@ -3505,7 +3505,7 @@ void run_all_genie_study(){
 	std::cout<<"Starting NC BHCnumubar."<<std::endl;
 	genie_NC(BHCnumubar,1);
 	std::cout<<"Starting NC BHCnutaubar."<<std::endl;
-	genie_NC(BHCnutaubar,1);
+	genie_NC(BHCnutaubar,1);*/
 
 
 
