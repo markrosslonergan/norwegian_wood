@@ -340,7 +340,7 @@ void genie_study(gst_file * file){
 
 
 		//Nrevertex. for stats.
-		int Nrevertex = 1;
+		int Nrevertex = 10;
 		for(int k=0;k<Nrevertex; k++){
 
 			double vertex_weight = 1.0/((double) Nrevertex);
@@ -751,7 +751,7 @@ void genie_study(gst_file * file){
 					m_Ereco = reco_E;
 					m_Etrue = Ev;
 					m_l = 1300 ;	
-					m_weight = cc_efficiency*vertex_weight*0.1783*POT_norm;
+					m_weight = cc_efficiency*vertex_weight*0.1783*POT_norm*get_elike_nutau_kNN_eff(m_Ereco);
 					m_nutype = neu;
 					//std::cout<<"NCC: "<<m_Ereco<<" "<<m_Etrue<<" "<<m_l<<" "<<m_weight<<" "<<m_nutype<<std::endl;
 					if(file->in_use.at(2)){
@@ -1187,7 +1187,7 @@ void genie_CC_slimmed(){
 
 
 		//Nrevertex. for stats.
-		int Nrevertex = 25;
+		int Nrevertex = 10;
 		for(int k=0;k<Nrevertex; k++){
 
 			double vertex_weight = 1.0/((double) Nrevertex);
@@ -2122,7 +2122,7 @@ void genie_CC(){
 
 
 		//Nrevertex. for stats.
-		int Nrevertex = 25;
+		int Nrevertex = 10;
 		for(int k=0;k<Nrevertex; k++){
 
 			double vertex_weight = 1.0/((double) Nrevertex);
@@ -3141,7 +3141,7 @@ void genie_NC(gst_file * file){
 
 
 			//Nrevertex. for stats.
-			int Nrevertex = 1;
+			int Nrevertex = 10;
 			for(int k=0;k<Nrevertex; k++){
 
 				double vertex_weight = 1.0/((double) Nrevertex);
@@ -3359,10 +3359,10 @@ void genie_NC(gst_file * file){
 						m_Ereco = background_photons.at(0).lorentz.E()+Ehad;
 						m_Etrue = Ev;
 						m_l = 1300 ;	
-						m_weight = egamma_misidrate*vertex_weight*POT_norm;
+						m_weight = egamma_misidrate*vertex_weight*POT_norm*get_elike_NC_kNN_eff(m_Ereco);
 						m_nutype = neu;
 						
-						if(file->in_use.at(3))  list_o_trees.at(0)->Fill();
+						if(file->in_use.at(3))  list_o_trees.at(1)->Fill();
 
 					}
 				}//NC end.
@@ -3395,14 +3395,14 @@ void genie_NC(gst_file * file){
 		int NUBAR = 1;
 
 		//Neutrino Mode
-		gst_file * FHC_numu = new gst_file( "gntp.0.numu50k_gst",FHC,NU,1.10634);
-		gst_file* FHC_numubar= new gst_file( "gntp.0.numubar10k_gst",FHC,NUBAR,0.181760);
-		gst_file* FHC_nutaubar= new gst_file( "gntp.0.nutaubar20k_gst",FHC,NUBAR,0.090880);
-		gst_file* FHC_nutau= new gst_file( "gntp.0.nutau20k_gst",FHC,NU,2.76584);
-		gst_file* FHC_nue = new gst_file( "gntp.0.nue20k_gst",FHC,NU,0.0323551);
-		gst_file* FHC_nuebar= new gst_file( "gntp.0.nuebar20k_gst",FHC,NUBAR,0.00404113);
-		gst_file* FHC_numu_nuebeam= new gst_file( "gntp.0.numuflux_nuebeam50k_gst",FHC,NU,1.10634);
-		gst_file* FHC_numubar_nuebarbeam= new gst_file( "gntp.0.numubarflux_nuebarbeam10k_gst",FHC,NUBAR,0.181760);
+		gst_file* FHC_numu = new gst_file( "gntp.0.numu50k_gst",FHC,NU,1.10634); //
+		gst_file* FHC_numubar= new gst_file( "gntp.0.numubar10k_gst",FHC,NUBAR,0.181760);//
+		gst_file* FHC_nutaubar= new gst_file( "gntp.0.nutaubar20k_gst",FHC,NUBAR,0.090880);//
+		gst_file* FHC_nutau= new gst_file( "gntp.0.nutau20k_gst",FHC,NU,2.76584); //
+		gst_file* FHC_nue = new gst_file( "gntp.0.nue20k_gst",FHC,NU,0.0323551); //
+		gst_file* FHC_nuebar= new gst_file( "gntp.0.nuebar20k_gst",FHC,NUBAR,0.00404113);//
+		gst_file* FHC_numu_nuebeam= new gst_file( "gntp.0.numuflux_nuebeam50k_gst",FHC,NU,1.10634); //
+		gst_file* FHC_numubar_nuebarbeam= new gst_file( "gntp.0.numubarflux_nuebarbeam10k_gst",FHC,NUBAR,0.181760);//
 
 		// Sets the histograms that each stage of genie_study goes to we have intrinsic/fullosc, muonmisid, taumisid
 		// leave as empty string if nothing goes there for that sample
@@ -3421,14 +3421,14 @@ void genie_NC(gst_file * file){
 
 
 		//Anti_neutrino Mode
-		gst_file* RHC_nutaubar= new gst_file( "gntp.0.RHC_FD_numubarflux_nutaubarbeam20k_gst",RHC,NUBAR,0.989670);
-		gst_file* RHC_nutau= new gst_file( "gntp.0.RHC_FD_numuflux_nutaubeam10k_gst",RHC,NU, 0.512185);
-		gst_file* RHC_nue = new gst_file( "gntp.0.RHC_FD_nueflux_nuebeam10k_gst",RHC,NU, 0.0215175);
-		gst_file* RHC_nuebar= new gst_file( "gntp.0.RHC_FD_nuebarflux_nuebarbeam10k_gst",RHC,NUBAR,0.0213827);
-		gst_file* RHC_numu = new gst_file( "gntp.0.RHC_FD_numuflux_numubeam20k_gst",RHC,NU,0.256093);
-		gst_file* RHC_numubar= new gst_file( "gntp.0.RHC_FD_numubarflux_numubarbeam50k_gst",RHC,NUBAR,0.395868);
-		gst_file* RHC_numu_nuebeam = new gst_file( "gntp.0.RHC_FD_numuflux_nuebeam10k_gst",RHC,NU,0.512185);
-		gst_file* RHC_numubar_nuebarbeam= new gst_file( "gntp.0.RHC_FD_numubarflux_nuebarbeam20k_gst",RHC,NUBAR,0.989670);
+		gst_file* RHC_nutaubar= new gst_file( "gntp.0.RHC_FD_numubarflux_nutaubarbeam20k_gst",RHC,NUBAR,0.989670);//
+		gst_file* RHC_nutau= new gst_file( "gntp.0.RHC_FD_numuflux_nutaubeam10k_gst",RHC,NU, 0.512185);//
+		gst_file* RHC_nue = new gst_file( "gntp.0.RHC_FD_nueflux_nuebeam10k_gst",RHC,NU, 0.0215175);//
+		gst_file* RHC_nuebar= new gst_file( "gntp.0.RHC_FD_nuebarflux_nuebarbeam10k_gst",RHC,NUBAR,0.0213827);//
+		gst_file* RHC_numu = new gst_file( "gntp.0.RHC_FD_numuflux_numubeam20k_gst",RHC,NU,0.256093);//
+		gst_file* RHC_numubar= new gst_file( "gntp.0.RHC_FD_numubarflux_numubarbeam50k_gst",RHC,NUBAR,0.395868);//
+		gst_file* RHC_numu_nuebeam = new gst_file( "gntp.0.RHC_FD_numuflux_nuebeam10k_gst",RHC,NU,0.512185);//
+		gst_file* RHC_numubar_nuebarbeam= new gst_file( "gntp.0.RHC_FD_numubarflux_nuebarbeam20k_gst",RHC,NUBAR,0.989670);//
 
 		RHC_numu->setHistLocations({"","elike_mumisid","","elike_ncmisid"});
 		RHC_numubar->setHistLocations({"","elike_mumisidbar","","elike_ncmisidbar"});

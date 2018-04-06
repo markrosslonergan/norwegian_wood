@@ -512,7 +512,7 @@ void genie_mu(gst_file * file){
 				m_Ereco = reco_E;
 				m_Etrue = Ev;
 				m_l = 1300 ;	
-				m_weight = cc_efficiency_mu*POT_norm;
+				m_weight = cc_efficiency_mu*POT_norm*get_mulike_NC_kNN_eff(reco_E);
 				m_nutype = neu;
 				//std::cout<<"NCC: "<<m_Ereco<<" "<<m_Etrue<<" "<<m_l<<" "<<m_weight<<" "<<m_nutype<<std::endl;
 				if(file->in_use.at(2)){
@@ -664,7 +664,7 @@ void genie_mu(gst_file * file){
 
 
 			//Nrevertex. for stats.
-			int Nrevertex = 1;
+			int Nrevertex = 10;
 			for(int k=0;k<Nrevertex; k++){
 
 				double vertex_weight = 1.0/((double) Nrevertex);
@@ -874,7 +874,7 @@ void genie_mu(gst_file * file){
 						m_Ereco = reco_E;
 						m_Etrue = Ev;
 						m_l = 1300 ;	
-						m_weight = cc_efficiency_mu*vertex_weight*0.1739*POT_norm;
+						m_weight = cc_efficiency_mu*vertex_weight*0.1739*POT_norm*get_mulike_nutau_kNN_eff(reco_E);
 						m_nutype = neu;
 						//std::cout<<"TAU: "<<m_Ereco<<" "<<m_Etrue<<" "<<m_l<<" "<<m_weight<<" "<<m_nutype<<std::endl;
 						if(file->in_use.at(1)){

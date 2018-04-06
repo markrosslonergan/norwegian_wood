@@ -18,7 +18,7 @@
 		<subchannel name="mumisid" use="1" osc="22" />
 		<subchannel name="mumisidbar" use="1" osc="-22" />
 		<subchannel name="taumisid" use="1" osc="23"/>
-		<subchannel name="taubarmisid" use="1" osc="-23"/>
+		<subchannel name="taumisidbar" use="1" osc="-23"/>
 		<subchannel name="ncmisid" use="1" osc="0"/>
 		<subchannel name="ncmisidbar" use="1" osc="0"/>
 </channel>
