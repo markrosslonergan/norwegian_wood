@@ -88,13 +88,13 @@ void bethe_test(){
 
 }
 
-void genie_mu(TString filename, int nu_mode){
+void genie_mu(gst_file * file){
 
 	//want to try osc. + weak decay of tau.
 
 	//given that gsttree gets the POT scaling
-	double POT_norm = get_normalization(filename);
-	std::cout<<"POT Normalization: "<<filename<<" "<<POT_norm<<std::endl;
+	double POT_norm = file->norm;
+	std::cout<<"POT Normalization: "<<file->filename<<" "<<POT_norm<<std::endl;
 
 
 	//cc
@@ -119,11 +119,11 @@ void genie_mu(TString filename, int nu_mode){
 	// gntp.0.numubar10k_gst
 
 
-	TFile *f = new TFile(TString("../gst0to40/")+filename+TString(".root"));
+	TFile *f = new TFile(TString("../gst0to40/")+file->filename+TString(".root"));
 	TTree *gstree = (TTree*)f->Get("gst");
 
-	//TFile *fnew = new TFile(TString("../gst0to40/out_mu_100cm/")+filename+TString("_genie_mu_out.root"),"RECREATE");
-	TFile *fnew = new TFile(TString("../gst0to40/out/")+filename+TString("_genie_mu_out.root"),"RECREATE");
+	//TFile *fnew = new TFile(TString("../gst0to40/out_mu_100cm/")+file->filename+TString("_genie_mu_out.root"),"RECREATE");
+	TFile *fnew = new TFile(TString("../gst0to40/out/")+file->filename+TString("_genie_mu_out.root"),"RECREATE");
 
 
 	//std::vector<std::string> subchannels = {"nuefullosc","nuebarfullosc","intrinsic","ncmisid","numumisid","nutaumisid"};
@@ -135,12 +135,9 @@ void genie_mu(TString filename, int nu_mode){
 
 	std::vector<TTree*> list_o_trees;
 
-	std::vector<std::string> subchannels ;
-	if(nu_mode == 0){ 
-	subchannels = {"nu_dune_mulike_intrinsic","nu_dune_mulike_taumisid","nu_dune_mulike_ncmisid"};
-	} else if(nu_mode ==1){
-	subchannels = {"nubar_dune_mulike_intrinsic","nubar_dune_mulike_taumisid","nubar_dune_mulike_ncmisid"};
-	}
+	std::vector<std::string> subchannels = file->hists;
+
+
 	double m_Ereco=0;
 	double m_Etrue=0;
 	double m_l=0;
@@ -151,7 +148,7 @@ void genie_mu(TString filename, int nu_mode){
 
 
 	for(auto s: subchannels){
-
+		if(s=="") continue;
 		if(fntuple->GetListOfKeys()->Contains(s.c_str())){
 			std::cout<<s<<" exists in file."<<std::endl;
 			list_o_trees.push_back( (TTree*)fntuple->Get(s.c_str()) );	
@@ -515,10 +512,12 @@ void genie_mu(TString filename, int nu_mode){
 				m_Ereco = reco_E;
 				m_Etrue = Ev;
 				m_l = 1300 ;	
-				m_weight = cc_efficiency_mu*POT_norm;
+				m_weight = cc_efficiency_mu*POT_norm*get_mulike_NC_kNN_eff(reco_E);
 				m_nutype = neu;
 				//std::cout<<"NCC: "<<m_Ereco<<" "<<m_Etrue<<" "<<m_l<<" "<<m_weight<<" "<<m_nutype<<std::endl;
-				list_o_trees.at(2)->Fill();
+				if(file->in_use.at(2)){
+					list_o_trees.at(1)->Fill();
+				}
 
 
 			}
@@ -665,7 +664,7 @@ void genie_mu(TString filename, int nu_mode){
 
 
 			//Nrevertex. for stats.
-			int Nrevertex = 1;
+			int Nrevertex = 10;
 			for(int k=0;k<Nrevertex; k++){
 
 				double vertex_weight = 1.0/((double) Nrevertex);
@@ -741,7 +740,9 @@ void genie_mu(TString filename, int nu_mode){
 						m_nutype = neu;
 						
 						//std::cout<<"INT: "<<m_Ereco<<" "<<m_Etrue<<" "<<m_l<<" "<<m_weight<<" "<<m_nutype<<std::endl;
-						list_o_trees.at(0)->Fill();
+						if(file->in_use.at(0)){
+							list_o_trees.at(0)->Fill();
+						}
 
 
 
@@ -873,13 +874,12 @@ void genie_mu(TString filename, int nu_mode){
 						m_Ereco = reco_E;
 						m_Etrue = Ev;
 						m_l = 1300 ;	
-						m_weight = cc_efficiency_mu*vertex_weight*0.1739*POT_norm;
+						m_weight = cc_efficiency_mu*vertex_weight*0.1739*POT_norm*get_mulike_nutau_kNN_eff(reco_E);
 						m_nutype = neu;
 						//std::cout<<"TAU: "<<m_Ereco<<" "<<m_Etrue<<" "<<m_l<<" "<<m_weight<<" "<<m_nutype<<std::endl;
-						list_o_trees.at(1)->Fill();
-
-
-
+						if(file->in_use.at(1)){
+							list_o_trees.at(0)->Fill();
+						}
 
 
 						/*hist_PT_vs_PL_weak->Fill(MissingEnergy.Pt(),Pztot,prob_muflav(Ev,3));
@@ -917,71 +917,51 @@ void genie_mu(TString filename, int nu_mode){
 }
 
 void run_all_genie_mu(){
+		int FHC = 0;
+		int RHC = 1;
+		
+		int NU = 0;
+		int NUBAR = 1;
 
-	TString nutaubar = "gntp.0.nutaubar20k_gst";
-	TString nutau = "gntp.0.nutau20k_gst";
-	TString nue  = "gntp.0.nue20k_gst";
-	TString nuebar = "gntp.0.nuebar20k_gst";
-	TString numu  = "gntp.0.numu50k_gst";
-	TString numubar = "gntp.0.numubar10k_gst";
+		//Neutrino Mode
+		gst_file * FHC_numu = new gst_file( "gntp.0.numu50k_gst",FHC,NU,1.10634);
+		gst_file* FHC_numubar= new gst_file( "gntp.0.numubar10k_gst",FHC,NUBAR,0.181760);
+		gst_file* FHC_nutaubar= new gst_file( "gntp.0.nutaubar20k_gst",FHC,NUBAR,0.090880);
+		gst_file* FHC_nutau= new gst_file( "gntp.0.nutau20k_gst",FHC,NU,2.76584);
 
-	TString numu_nuebeam = "gntp.0.numuflux_nuebeam50k_gst";
-	TString numubar_nuebarbeam = "gntp.0.numubarflux_nuebarbeam10k_gst";
+		// Sets the histograms that each stage of genie_study goes to we have intrinsic/fullosc, muonmisid, taumisid
+		// leave as empty string if nothing goes there for that sample
+		// constructs using 
+		// FOr muons 0: intrinsic, 1: tau, 2: NC
+		FHC_numu->setHistLocations({"mulike_intrinsic","","mulike_ncmisid"});
+		FHC_numubar->setHistLocations({"mulike_intrinsicbar","","mulike_ncmisidbar"});
+		FHC_nutau->setHistLocations({"","mulike_taumisid",""});
+		FHC_nutaubar->setHistLocations({"","mulike_taumisidbar",""});
 
+		std::vector<gst_file*> FHC_files = {FHC_numu, FHC_numubar, FHC_nutau, FHC_nutaubar};
+		
 
+		//Anti_neutrino Mode
+		gst_file* RHC_nutaubar= new gst_file( "gntp.0.RHC_FD_numubarflux_nutaubarbeam20k_gst",RHC,NUBAR,0.989670);
+		gst_file* RHC_nutau= new gst_file( "gntp.0.RHC_FD_numuflux_nutaubeam10k_gst",RHC,NU, 0.512185);
+		gst_file* RHC_numu = new gst_file( "gntp.0.RHC_FD_numuflux_numubeam20k_gst",RHC,NU,0.256093);
+		gst_file* RHC_numubar= new gst_file( "gntp.0.RHC_FD_numubarflux_numubarbeam50k_gst",RHC,NUBAR,0.395868);
 
-	std::cout<<"Starting CC nue."<<std::endl;
-	genie_mu(nue,0);
-	std::cout<<"Starting CC numu."<<std::endl;
-	genie_mu(numu,0);
-	std::cout<<"Starting CC nutau."<<std::endl;
-	genie_mu(nutau,0);
+		RHC_numu->setHistLocations({"mulike_intrinsic","","mulike_ncmisid"});
+		RHC_numubar->setHistLocations({"mulike_intrinsicbar","","mulike_ncmisidbar"});
+		RHC_nutau->setHistLocations({"","mulike_taumisid",""});
+		RHC_nutaubar->setHistLocations({"","mulike_taumisidbar",""});
+		
+		std::vector<gst_file*> RHC_files = {RHC_numu, RHC_numubar, RHC_nutau, RHC_nutaubar};
 
-	std::cout<<"Starting CC nuebar."<<std::endl;
-	genie_mu(nuebar,0);
-	std::cout<<"Starting CC numubar."<<std::endl;
-	genie_mu(numubar,0);
-	std::cout<<"Starting CC nutaubar."<<std::endl;
-	genie_mu(nutaubar,0);
-
-	std::cout<<"Starting wierd CC numu_nuebeam."<<std::endl;
-	genie_mu(numu_nuebeam,0);
-	std::cout<<"Starting wierd CC numubear_nuebarbeam."<<std::endl;
-	genie_mu(numubar_nuebarbeam,0);
-
-
-	TString BHCnutaubar = "gntp.0.RHC_FD_numubarflux_nutaubarbeam20k_gst";
-	TString BHCnutau = "gntp.0.RHC_FD_numuflux_nutaubeam10k_gst";
-
-	TString BHCnue  = "gntp.0.RHC_FD_nueflux_nuebeam10k_gst";
-	TString BHCnuebar = "gntp.0.RHC_FD_nuebarflux_nuebarbeam10k_gst";
-
-	TString BHCnumu  = "gntp.0.RHC_FD_numuflux_numubeam20k_gst";
-	TString BHCnumubar = "gntp.0.RHC_FD_numubarflux_numubarbeam50k_gst";
-
-	TString BHCnumu_BHCnuebeam  = "gntp.0.RHC_FD_numuflux_nuebeam10k_gst";
-	TString BHCnumubar_BHCnuebarbeam = "gntp.0.RHC_FD_numubarflux_nuebarbeam20k_gst";
-
-
-	std::cout<<"Starting CC BHCnue."<<std::endl;
-	genie_mu(BHCnue,1);
-	std::cout<<"Starting CC BHCnumu."<<std::endl;
-	genie_mu(BHCnumu,1);
-	std::cout<<"Starting CC BHCnutau."<<std::endl;
-	genie_mu(BHCnutau,1);
-
-	std::cout<<"Starting CC BHCnuebar."<<std::endl;
-	genie_mu(BHCnuebar,1);
-	std::cout<<"Starting CC BHCnumubar."<<std::endl;
-	genie_mu(BHCnumubar,1);
-	std::cout<<"Starting CC BHCnutaubar."<<std::endl;
-	genie_mu(BHCnutaubar,1);
-
-	std::cout<<"Starting wierd CC BHCnumu_BHCnuebeam."<<std::endl;
-	genie_mu(BHCnumu_BHCnuebeam,1);
-	std::cout<<"Starting wierd CC BHCnumubear_BHCnuebarbeam."<<std::endl;
-	genie_mu(BHCnumubar_BHCnuebarbeam,1);
-
+		for(auto &f: FHC_files){
+			genie_mu(f);
+		}
+		
+		for(auto &f: RHC_files){
+			genie_mu(f);
+		}
+	
 
 
 

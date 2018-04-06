@@ -30,14 +30,32 @@ class genDUNE : public sbn::SBgeN {
 					breakdown_filename.push_back(token);
 					if(pos == std::string::npos) break;
 				}
-				std::string near_name = "nu_near_"+breakdown_filename.at(2)+"_"+breakdown_filename.at(3);
-				near_detector_names.push_back(near_name);
+				if(breakdown_filename.at(0) == "nu"){
+					std::string near_name = "nu_near_"+breakdown_filename.at(2)+"_"+breakdown_filename.at(3);
+					near_detector_names.push_back(near_name);
+				} else if (breakdown_filename.at(0)=="nubar"){
+					std::string near_name = "nubar_near_"+breakdown_filename.at(2)+"_"+breakdown_filename.at(3);
+					near_detector_names.push_back(near_name);
 
-				std::pair<int,int> osc_pattern = getOscPattern(multisim_name.at(i));
-				oscillation_patterns.push_back(osc_pattern);
+				}
 
 			}
+
+			this->getOscPattern();
+
+			for(int i=0; i< fullnames.size(); i++){
+				oscillation_patterns.push_back(osc_pattern_map[fullnames.at(i)]);
+				std::cout<<"FRT: "<<i<<" "<<fullnames.at(i)<<" "<<oscillation_patterns.back().first<<" "<<oscillation_patterns.back().second<<std::endl;
+			}		
+
+
 		}
+
+		std::map<std::string, std::pair<int,int>> osc_pattern_map;
+
+		std::vector<std::vector<std::vector<double>>> precalc_prob_farbar;
+		std::vector<std::vector<std::vector<double>>> precalc_prob_nearbar;
+	
 
 		std::vector<std::vector<std::vector<double>>> precalc_prob_far;
 		std::vector<std::vector<std::vector<double>>> precalc_prob_near;
@@ -58,7 +76,7 @@ class genDUNE : public sbn::SBgeN {
 		int tidyHistograms();
 		~genDUNE(){};
 	
-		std::pair<int,int> getOscPattern(std::string name);
+		int getOscPattern();
 		double lin_interp(double ein, double p1, double e1, double p2, double e2);
 
 };
