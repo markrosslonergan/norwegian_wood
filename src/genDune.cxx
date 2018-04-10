@@ -22,20 +22,25 @@ int genDUNE::fillHistograms(int file, int uni, double wei){
 
 	//write a map for osc patterns 
 
-
 	double oscprob_far =1.0; 
 	double oscprob_near =1.0; 
 
-	if(oscillation_patterns.at(file).first != 0 && oscillation_patterns.at(file).second != 0){
+
+
+	//FILE is for input file, nothing to do with the order of fullnames. remember that dammin. the oscillation patterns must be matched with multisim_name(file) maps!
+	std::pair<int,int> oscillation_pattern = osc_pattern_map[multisim_name.at(file)];
+
+	if(oscillation_pattern.first != 0 && oscillation_pattern.second != 0){
 		//std::cout<<oscillation_patterns.at(file).first<<" "<<oscillation_patterns.at(file).second<<std::endl;	
 
-		oscprob_far = interpolate_prob_far(oscillation_patterns.at(file).first, oscillation_patterns.at(file).second, Enu_true);
+		oscprob_far = interpolate_prob_far(oscillation_pattern.first, oscillation_pattern.second, Enu_true);
+		oscprob_near = interpolate_prob_near(oscillation_pattern.first, oscillation_pattern.second, Enu_true);
+		//std::cout<<"INV: "<<oscillation_pattern.first<<" "<<oscillation_pattern.second<<" "<<multisim_name.at(file)<<std::endl;
 
-		if(oscillation_patterns.at(file).first != oscillation_patterns.at(file).second){
-			oscprob_near =0;
-		}
-
-		//		oscprob_near = interpolate_prob_near(oscillation_patterns.at(file).first,oscillation_patterns.at(file).second, Enu_true);
+		//if(oscillation_patterns.at(file).first != oscillation_patterns.at(file).second){
+		//	oscprob_near =0;
+		//}
+		//oscprob_near = interpolate_prob_near(oscillation_patterns.at(file).first,oscillation_patterns.at(file).second, Enu_true);
 		//oscprob_far = prob->probabilityMatterExact(oscillation_patterns.at(file).first, oscillation_patterns.at(file).second ,Enu_true, 1300);
 		//oscprob_near = prob->probabilityMatterExact(oscillation_patterns.at(file).first, oscillation_patterns.at(file).second ,Enu_true, 1);
 	}
@@ -43,9 +48,8 @@ int genDUNE::fillHistograms(int file, int uni, double wei){
 	//std::cout<<Enu_true<<" "<<Enu_reco<<" on file: "<<multisim_name.at(file)<<" "<<nutype<<" PROB: "<<oscprob_far<<std::endl;
 	//std::cout<<"Map Hist: "<<map_hist[multisim_name.at(file)]<<std::endl;
 
-
 	hist.at(map_hist[multisim_name.at(file)]).Fill(Enu_reco, oscprob_far*weight*far_detector_weight);
-	hist.at(map_hist[near_detector_names.at(file)]).Fill(Enu_reco, oscprob_near*weight*near_detector_weight);
+	hist.at(map_hist[near_detector_name_map[multisim_name.at(file)]]).Fill(Enu_reco, oscprob_near*weight*near_detector_weight);
 
 	return 0;
 }
@@ -59,9 +63,11 @@ double genDUNE::interpolate_prob_far(int a, int b, double enu){
 	double p1,p2;
 
 	if(a<0 && b<0 ){
+//		std::cout<<"INV2: "<<-a-1<<" "<<-b-1<<" anti "<<std::endl;
 		p1 = precalc_prob_farbar.at(-a-1).at(-b-1).at(rnd);
 		p2 = precalc_prob_farbar.at(-a-1).at(-b-1).at(rnd+1);
 	}else{
+//		std::cout<<"INV2: "<<a-1<<" "<<b-1<<" nuetrino "<<std::endl;
 		p1 = precalc_prob_far.at(a-1).at(b-1).at(rnd);
 		p2 = precalc_prob_far.at(a-1).at(b-1).at(rnd+1);
 	}
@@ -115,7 +121,6 @@ int genDUNE::preCalculateProbs(){
 			for(double en = 0.001; en < 50; en+= 0.01){
 				tmpen_far.push_back(prob->probabilityMatterExact(i,j,en,1300));
 				tmpen_near.push_back(prob->probabilityVacuumExact(i,j,en,1.0));
-				//std::cout<<"P"<<i<<j<<" "<<en<<" "<<tmpen_far.back()<<" "<<tmpen_near.back()<<std::endl;
 			}
 
 			tmp_near.push_back(tmpen_near);
@@ -141,7 +146,6 @@ int genDUNE::preCalculateProbs(){
 			for(double en = 0.001; en < 50; en+= 0.01){
 				tmpen_farbar.push_back(prob->probabilityMatterExact(i,j,en,1300));
 				tmpen_nearbar.push_back(prob->probabilityVacuumExact(i,j,en,1.0));
-				//std::cout<<"P"<<i<<j<<" "<<en<<" "<<tmpen_farbar.back()<<" "<<tmpen_nearbar.back()<<std::endl;
 			}
 
 			tmp_nearbar.push_back(tmpen_nearbar);

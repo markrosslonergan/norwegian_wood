@@ -82,7 +82,7 @@ int main(int argc, char* argv[])
 
 	while(iarg != -1)
 	{
-		iarg = getopt_long(argc,argv, "x:t:f:", longopts, &index);
+		iarg = getopt_long(argc,argv, "x:m:t:f:", longopts, &index);
 
 		switch(iarg)
 		{
@@ -142,9 +142,9 @@ int main(int argc, char* argv[])
 
 		std::vector<double> angles = {30, 44, 8, 0,0,0};
 		std::vector<double> phases = {0,0,0};
-		std::vector<double> mass_splittings = {7.5*pow(10,-5), -2.552*pow(10,-3),0};
+		std::vector<double> mass_splittings = {7.5*pow(10,-5), 2.552*pow(10,-3),0};
 		genDUNE dcp0(xml);
-		genDUNE dcp180(xml);
+		genDUNE dcp180 = dcp0;
 
 		dcp0.prob = new SBNprob(4, angles, phases, mass_splittings);
 		dcp0.preCalculateProbs();
@@ -156,8 +156,6 @@ int main(int argc, char* argv[])
 
 		dcp0.doMC("gentest0");
 		dcp180.doMC("gentest180");
-
-
 
 
 		//SBNspec dune_0("~/work/pheno/DUNE+SBN/build/src/dune_dcp0",xml);
@@ -175,7 +173,7 @@ int main(int argc, char* argv[])
 		std::ofstream dunestream;
 		dunestream.open ("DUNE_data.dat");
 
-		for(double dcp = 0.0; dcp <= 360; dcp += 10.0){
+		for(double dcp = 0.0; dcp <= 360; dcp += 5.0){
 
 			genDUNE testGen(xml);
 			phases.at(0) = dcp; 
@@ -198,9 +196,6 @@ int main(int argc, char* argv[])
 
 	}
 }
-
-
-
 
 
 
