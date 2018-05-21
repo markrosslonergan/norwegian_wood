@@ -1,4 +1,4 @@
-#ifndef GENDUNE_h
+#ifndef GENDUNE_H
 #define GENDUNE_H
 
 #include <string>
