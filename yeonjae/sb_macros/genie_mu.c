@@ -934,9 +934,9 @@ void run_all_genie_mu(){
 		// constructs using 
 		// FOr muons 0: intrinsic, 1: tau, 2: NC
 		FHC_numu->setHistLocations({"mulike_intrinsic","","mulike_ncmisid"});
-		FHC_numubar->setHistLocations({"mulike_intrinsicbar","","mulike_ncmisidbar"});
+		FHC_numubar->setHistLocations({"mulike_antiintrinsic","","mulike_antincmisid"});
 		FHC_nutau->setHistLocations({"","mulike_taumisid",""});
-		FHC_nutaubar->setHistLocations({"","mulike_taumisidbar",""});
+		FHC_nutaubar->setHistLocations({"","mulike_antitaumisid",""});
 
 		std::vector<gst_file*> FHC_files = {FHC_numu, FHC_numubar, FHC_nutau, FHC_nutaubar};
 		
@@ -948,9 +948,9 @@ void run_all_genie_mu(){
 		gst_file* RHC_numubar= new gst_file( "gntp.0.RHC_FD_numubarflux_numubarbeam50k_gst",RHC,NUBAR,0.395868);
 
 		RHC_numu->setHistLocations({"mulike_intrinsic","","mulike_ncmisid"});
-		RHC_numubar->setHistLocations({"mulike_intrinsicbar","","mulike_ncmisidbar"});
+		RHC_numubar->setHistLocations({"mulike_antiintrinsic","","mulike_antincmisid"});
 		RHC_nutau->setHistLocations({"","mulike_taumisid",""});
-		RHC_nutaubar->setHistLocations({"","mulike_taumisidbar",""});
+		RHC_nutaubar->setHistLocations({"","mulike_antitaumisid",""});
 		
 		std::vector<gst_file*> RHC_files = {RHC_numu, RHC_numubar, RHC_nutau, RHC_nutaubar};
 

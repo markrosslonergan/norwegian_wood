@@ -12,7 +12,7 @@ class genDUNE : public sbn::SBgeN {
 		genDUNE(std::string xmlname):SBgeN(xmlname){
 			prob = new sbn::SBNprob(4);
 		
-			near_detector_weight = 10.0;
+			near_detector_weight = 5.0;
 			far_detector_weight = 1.0;
 
 			for(int i = 0; i < multisim_name.size(); i++){
@@ -42,6 +42,12 @@ class genDUNE : public sbn::SBgeN {
 					std::cout<<"Mapped to: "<<near_name<<" @ "<<map_hist[near_name]<<std::endl;
 					near_detector_name_map[multisim_name.at(i)] = near_name;
 					near_map_hist[multisim_name.at(i)] = map_hist[near_name]  ;			
+				}
+
+
+				if (map_hist.count(multisim_name.at(i))!=1){
+					std::cout<<"ERROR: one of the input multisim_tree's is not in the xml config: "<<multisim_name.at(i)<<std::endl;
+					exit(EXIT_FAILURE);
 				}
 
 

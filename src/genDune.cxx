@@ -28,7 +28,8 @@ int genDUNE::fillHistograms(int file, int uni, double wei){
 
 
 	//FILE is for input file, nothing to do with the order of fullnames. remember that dammin. the oscillation patterns must be matched with multisim_name(file) maps!
-	std::pair<int,int> oscillation_pattern = osc_pattern_map[multisim_name.at(file)];
+	std::pair<int,int> oscillation_pattern = osc_pattern_map.at(multisim_name.at(file));
+
 
 	if(oscillation_pattern.first != 0 && oscillation_pattern.second != 0){
 		//std::cout<<oscillation_patterns.at(file).first<<" "<<oscillation_patterns.at(file).second<<std::endl;	
@@ -45,11 +46,12 @@ int genDUNE::fillHistograms(int file, int uni, double wei){
 		//oscprob_near = prob->probabilityMatterExact(oscillation_patterns.at(file).first, oscillation_patterns.at(file).second ,Enu_true, 1);
 	}
 
+
 	//std::cout<<Enu_true<<" "<<Enu_reco<<" on file: "<<multisim_name.at(file)<<" "<<nutype<<" PROB: "<<oscprob_far<<std::endl;
 	//std::cout<<"Map Hist: "<<map_hist[multisim_name.at(file)]<<std::endl;
 
 	hist.at(map_hist[multisim_name.at(file)]).Fill(Enu_reco, oscprob_far*weight*far_detector_weight);
-	hist.at(map_hist[near_detector_name_map[multisim_name.at(file)]]).Fill(Enu_reco, oscprob_near*weight*near_detector_weight);
+	hist.at(map_hist[near_detector_name_map.at(multisim_name.at(file))]).Fill(Enu_reco, oscprob_near*weight*near_detector_weight);
 
 	return 0;
 }
@@ -86,7 +88,7 @@ double genDUNE::interpolate_prob_near(int a, int b, double enu){
 	int rnd = std::floor(enu/0.01);
 	double p1,p2;
 
-	if(a<0){
+	if(a<0 && b < 0){
 		p1 = precalc_prob_nearbar.at(-a-1).at(-b-1).at(rnd);
 		p2 = precalc_prob_nearbar.at(-a-1).at(-b-1).at(rnd+1);
 	}else{
@@ -119,8 +121,8 @@ int genDUNE::preCalculateProbs(){
 			std::vector<double> tmpen_far;
 
 			for(double en = 0.001; en < 50; en+= 0.01){
-				tmpen_far.push_back(prob->probabilityMatterExact(i,j,en,1300));
-				tmpen_near.push_back(prob->probabilityVacuumExact(i,j,en,1.0));
+				tmpen_far.push_back(prob->probabilityMatterExact(i,j,1,en,1300));
+				tmpen_near.push_back(prob->probabilityVacuumExact(i,j,1,en,1.0));
 			}
 
 			tmp_near.push_back(tmpen_near);
@@ -133,8 +135,9 @@ int genDUNE::preCalculateProbs(){
 
 	}
 	std::cout<<"Starting precalculating probs BAR"<<std::endl;
-	prob->useAntiNeutrino = true;
-	prob->init();
+	//prob->useAntiNeutrino = true;
+	//prob->init();
+
 	for(int i = 0; i < 4; i++){
 		std::vector<std::vector<double>> tmp_nearbar;
 		std::vector<std::vector<double>> tmp_farbar;
@@ -144,8 +147,8 @@ int genDUNE::preCalculateProbs(){
 			std::vector<double> tmpen_farbar;
 
 			for(double en = 0.001; en < 50; en+= 0.01){
-				tmpen_farbar.push_back(prob->probabilityMatterExact(i,j,en,1300));
-				tmpen_nearbar.push_back(prob->probabilityVacuumExact(i,j,en,1.0));
+				tmpen_farbar.push_back(prob->probabilityMatterExact(i,j,-1,en,1300));
+				tmpen_nearbar.push_back(prob->probabilityVacuumExact(i,j,-1,en,1.0));
 			}
 
 			tmp_nearbar.push_back(tmpen_nearbar);

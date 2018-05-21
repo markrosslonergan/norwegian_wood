@@ -3408,13 +3408,13 @@ void genie_NC(gst_file * file){
 		// leave as empty string if nothing goes there for that sample
 		// constructs using 
 		FHC_numu->setHistLocations({"","elike_mumisid","","elike_ncmisid"});
-		FHC_numubar->setHistLocations({"","elike_mumisidbar","","elike_ncmisidbar"});
+		FHC_numubar->setHistLocations({"","elike_antimumisid","","elike_antincmisid"});
 		FHC_nutau->setHistLocations({"","","elike_taumisid",""});
-		FHC_nutaubar->setHistLocations({"","","elike_taumisidbar",""});
+		FHC_nutaubar->setHistLocations({"","","elike_antitaumisid",""});
 		FHC_nue->setHistLocations({"elike_intrinsic","","",""});
-		FHC_nuebar->setHistLocations({"elike_intrinsicbar","","",""});
+		FHC_nuebar->setHistLocations({"elike_antiintrinsic","","",""});
 		FHC_numu_nuebeam->setHistLocations({"elike_fullosc","","",""});
-		FHC_numubar_nuebarbeam->setHistLocations({"elike_fulloscbar","","",""});
+		FHC_numubar_nuebarbeam->setHistLocations({"elike_antifullosc","","",""});
 
 		std::vector<gst_file*> FHC_files = {FHC_numu, FHC_numubar, FHC_nutau, FHC_nutaubar, FHC_nue, FHC_nuebar, FHC_numu_nuebeam, FHC_numubar_nuebarbeam};
 		
@@ -3431,13 +3431,13 @@ void genie_NC(gst_file * file){
 		gst_file* RHC_numubar_nuebarbeam= new gst_file( "gntp.0.RHC_FD_numubarflux_nuebarbeam20k_gst",RHC,NUBAR,0.989670);//
 
 		RHC_numu->setHistLocations({"","elike_mumisid","","elike_ncmisid"});
-		RHC_numubar->setHistLocations({"","elike_mumisidbar","","elike_ncmisidbar"});
+		RHC_numubar->setHistLocations({"","elike_antimumisid","","elike_antincmisid"});
 		RHC_nutau->setHistLocations({"","","elike_taumisid",""});
-		RHC_nutaubar->setHistLocations({"","","elike_taumisidbar",""});
+		RHC_nutaubar->setHistLocations({"","","elike_antitaumisid",""});
 		RHC_nue->setHistLocations({"elike_intrinsic","","",""});
-		RHC_nuebar->setHistLocations({"elike_intrinsicbar","","",""});
+		RHC_nuebar->setHistLocations({"elike_antiintrinsic","","",""});
 		RHC_numu_nuebeam->setHistLocations({"elike_fullosc","","",""});
-		RHC_numubar_nuebarbeam->setHistLocations({"elike_fulloscbar","","",""});
+		RHC_numubar_nuebarbeam->setHistLocations({"elike_antifullosc","","",""});
 
 			std::vector<gst_file*> RHC_files = {RHC_numu, RHC_numubar, RHC_nutau, RHC_nutaubar, RHC_nue, RHC_nuebar, RHC_numu_nuebeam, RHC_numubar_nuebarbeam};
 

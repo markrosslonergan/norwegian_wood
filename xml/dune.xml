@@ -11,44 +11,33 @@
 		<bins 
 			edges="0.0 0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0 6.5 7.0 7.5 8.0 8.5 9.0 9.5 10.0 15 20"
 		/>
-	  	<subchannel name="fullosc" use="1" osc="21" />	
-	  	<subchannel name="fulloscbar" use="1" osc="-21" />	
-		<subchannel name="intrinsic" use="1" osc="11"/>
-		<subchannel name="intrinsicbar" use="1" osc="-11"/>
-		<subchannel name="mumisid" use="1" osc="22" />
-		<subchannel name="mumisidbar" use="1" osc="-22" />
-		<subchannel name="taumisid" use="1" osc="23"/>
-		<subchannel name="taumisidbar" use="1" osc="-23"/>
-		<subchannel name="ncmisid" use="1" osc="0"/>
-		<subchannel name="ncmisidbar" use="1" osc="0"/>
+	  	<subchannel name="fullosc" plotname="#nu_{#mu} #rightarrow #nu_{e}" use="1" osc="21" />	
+	  	<subchannel name="antifullosc" plotname="#bar{#nu}_{#mu} #rightarrow #bar{#nu}_{e}" use="1" osc="-21" />	
+		<subchannel name="intrinsic" plotname = "Intrinsic #nu_{e}" use="1" osc="11"/>
+		<subchannel name="antiintrinsic" plotname = "Intrinsic #bar{#nu}_{e}"use="1" osc="-11"/>
+		<subchannel name="mumisid" plotname = "#nu_{#mu} misid" use="1" osc="22" />
+		<subchannel name="antimumisid" plotname = "#bar{#nu}_{#mu} misid" use="1" osc="-22" />
+		<subchannel name="taumisid" plotname = "#nu_{#tau} misid" use="1" osc="23"/>
+		<subchannel name="antitaumisid" plotname = "#bar{#nu}_{#tau} misid" use="1" osc="-23"/>
+		<subchannel name="ncmisid" plotname = "NC #nu misid" use="1" osc="0"/>
+		<subchannel name="antincmisid" plotname = "NC #bar{#nu} misid" use="1" osc="0"/>
 </channel>
 	
 <channel name="mulike" use="1" numbins="22">
 		<bins 
 			edges="0.0 0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0 6.5 7.0 7.5 8.0 8.5 9.0 9.5 10.0  15 20"
 		/>
-		<subchannel name="intrinsic" use="1" osc="22"/>
-		<subchannel name="intrinsicbar" use="1" osc="-22"/>
-		<subchannel name="taumisid" use="1" osc="23"/>
-		<subchannel name="taumisidbar" use="1" osc="-23"/>
-		<subchannel name="ncmisid" use="1" osc="0"/>
-		<subchannel name="ncmisidbar" use="1" osc="0"/>
+		<subchannel name="intrinsic" plotname = "Intrinsic #nu_{#mu}"use="1" osc="22"/>
+		<subchannel name="antiintrinsic" plotname = "Intrinsic #bar{#nu}_{#mu}"use="1" osc="-22"/>
+		<subchannel name="taumisid" plotname = "#nu_{#tau} misid"use="1" osc="23"/>
+		<subchannel name="antitaumisid" plotname = "#bar{#nu}_{#tau} misid"use="1" osc="-23"/>
+		<subchannel name="ncmisid" plotname = "NC #nu misid"use="1" osc="0"/>
+		<subchannel name="antincmisid" plotname = "NC #bar{#nu} misid" use="1" osc="0"/>
 </channel>
 
-<covariance file="covar/covariance_matrices_xcheck_1408x1408.root" name="TMatrixT<float>;6" />
+<covariance file="covar/covariance_matrices_xcheck_1408x1408.root" name="TMatrixT<double>;1" />
 	
 <data path="/home/mark/work/pheno/DUNE+SBN/" />
-
-<!--  KEY: TTree
-		nu_dune_elike_fullosc;24	nu_dune_elike_fullosc
-  KEY: TTree	nu_dune_elike_intrinsic;24	nu_dune_elike_intrinsic
-  KEY: TTree	nu_dune_elike_mumisid;24	nu_dune_elike_mumisid
-  KEY: TTree	nu_dune_elike_taumisid;24	nu_dune_elike_taumisid
-  KEY: TTree	nu_dune_elike_ncmisid;18	nu_dune_elike_ncmisid
-  KEY: TTree	nu_dune_mulike_intrinsic;16	nu_dune_mulike_intrinsic
-  KEY: TTree	nu_dune_mulike_taumisid;16	nu_dune_mulike_taumisid
-  KEY: TTree	nu_dune_mulike_ncmisid;16	nu_dune_mulike_ncmisid
--->
 
 <MCevents  multisim="1" name="nu_dune_elike_fullosc" filename="/home/mark/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_ntuple.root" pot="1" potscale="1">
 	<parameters
@@ -69,7 +58,7 @@
 	</btype>
 </MCevents>
 
-<MCevents  multisim="1" name="nu_dune_elike_fulloscbar" filename="/home/mark/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_ntuple.root" pot="1" potscale="1">
+<MCevents  multisim="1" name="nu_dune_elike_antifullosc" filename="/home/mark/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_ntuple.root" pot="1" potscale="1">
 	<parameters
 		names = "ALL"
 	/>
@@ -107,7 +96,7 @@
 	</btype>
 </MCevents>
 
-<MCevents  multisim="1" name="nu_dune_elike_intrinsicbar" filename="/home/mark/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_ntuple.root" pot="1" potscale="1">
+<MCevents  multisim="1" name="nu_dune_elike_antiintrinsic" filename="/home/mark/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_ntuple.root" pot="1" potscale="1">
 	<parameters
 		names = "ALL"
 	/>
@@ -146,7 +135,7 @@
 </MCevents>
 
 
-<MCevents  multisim="1" name="nu_dune_elike_mumisidbar" filename="/home/mark/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_ntuple.root" pot="1" potscale="1">
+<MCevents  multisim="1" name="nu_dune_elike_antimumisid" filename="/home/mark/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_ntuple.root" pot="1" potscale="1">
 	<parameters
 		names = "ALL"
 	/>
@@ -164,28 +153,6 @@
 	<btype type= "3" names="double_array">
 	</btype>
 </MCevents>
-
-
-<MCevents  multisim="1" name="nu_dune_elike_taumisidbar" filename="/home/mark/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_ntuple.root" pot="1" potscale="1">
-	<parameters
-		names = "ALL"
-	/>
-	<btype type="0" names="int">
-		<branch name="NuType"/>
-	</btype>
-	<btype type= "1" names="double">
-		<branch name="Ereco"/>
-		<branch name="Etrue"/>
-		<branch name="L"/>
-		<branch name="Weight"/>
-	</btype>
-	<btype type= "2" names="int_array">
-	</btype>
-	<btype type= "3" names="double_array">
-	</btype>
-</MCevents>
-
-
 
 
 <MCevents  multisim="1" name="nu_dune_elike_taumisid" filename="/home/mark/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_ntuple.root" pot="1" potscale="1">
@@ -207,7 +174,10 @@
 	</btype>
 </MCevents>
 
-<MCevents  multisim="1" name="nu_dune_elike_ncmisidbar" filename="/home/mark/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_ntuple.root" pot="1" potscale="1">
+
+
+
+<MCevents  multisim="1" name="nu_dune_elike_antitaumisid" filename="/home/mark/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_ntuple.root" pot="1" potscale="1">
 	<parameters
 		names = "ALL"
 	/>
@@ -225,7 +195,6 @@
 	<btype type= "3" names="double_array">
 	</btype>
 </MCevents>
-
 
 <MCevents  multisim="1" name="nu_dune_elike_ncmisid" filename="/home/mark/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_ntuple.root" pot="1" potscale="1">
 	<parameters
@@ -247,8 +216,7 @@
 </MCevents>
 
 
-
-<MCevents  multisim="1" name="nu_dune_mulike_intrinsicbar" filename="/home/mark/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_ntuple.root" pot="1" potscale="1">
+<MCevents  multisim="1" name="nu_dune_elike_antincmisid" filename="/home/mark/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_ntuple.root" pot="1" potscale="1">
 	<parameters
 		names = "ALL"
 	/>
@@ -266,6 +234,7 @@
 	<btype type= "3" names="double_array">
 	</btype>
 </MCevents>
+
 
 
 <MCevents  multisim="1" name="nu_dune_mulike_intrinsic" filename="/home/mark/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_ntuple.root" pot="1" potscale="1">
@@ -288,7 +257,7 @@
 </MCevents>
 
 
-<MCevents  multisim="1" name="nu_dune_mulike_taumisidbar" filename="/home/mark/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_ntuple.root" pot="1" potscale="1">
+<MCevents  multisim="1" name="nu_dune_mulike_antiintrinsic" filename="/home/mark/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_ntuple.root" pot="1" potscale="1">
 	<parameters
 		names = "ALL"
 	/>
@@ -328,7 +297,7 @@
 </MCevents>
 
 
-<MCevents  multisim="1" name="nu_dune_mulike_ncmisidbar" filename="/home/mark/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_ntuple.root" pot="1" potscale="1">
+<MCevents  multisim="1" name="nu_dune_mulike_antitaumisid" filename="/home/mark/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_ntuple.root" pot="1" potscale="1">
 	<parameters
 		names = "ALL"
 	/>
@@ -346,8 +315,6 @@
 	<btype type= "3" names="double_array">
 	</btype>
 </MCevents>
-
-
 
 
 <MCevents  multisim="1" name="nu_dune_mulike_ncmisid" filename="/home/mark/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_ntuple.root" pot="1" potscale="1">
@@ -370,7 +337,9 @@
 </MCevents>
 
 
-<MCevents  multisim="1" name="nubar_dune_elike_fulloscbar" filename="/home/mark/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_ntuple.root" pot="1" potscale="1">
+
+
+<MCevents  multisim="1" name="nu_dune_mulike_antincmisid" filename="/home/mark/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_ntuple.root" pot="1" potscale="1">
 	<parameters
 		names = "ALL"
 	/>
@@ -388,146 +357,6 @@
 	<btype type= "3" names="double_array">
 	</btype>
 </MCevents>
-
-<MCevents  multisim="1" name="nubar_dune_elike_intrinsicbar" filename="/home/mark/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_ntuple.root" pot="1" potscale="1">
-	<parameters
-		names = "ALL"
-	/>
-	<btype type="0" names="int">
-		<branch name="NuType"/>
-	</btype>
-	<btype type= "1" names="double">
-		<branch name="Ereco"/>
-		<branch name="Etrue"/>
-		<branch name="L"/>
-		<branch name="Weight"/>
-	</btype>
-	<btype type= "2" names="int_array">
-	</btype>
-	<btype type= "3" names="double_array">
-	</btype>
-</MCevents>
-
-<MCevents  multisim="1" name="nubar_dune_elike_mumisidbar" filename="/home/mark/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_ntuple.root" pot="1" potscale="1">
-	<parameters
-		names = "ALL"
-	/>
-	<btype type="0" names="int">
-		<branch name="NuType"/>
-	</btype>
-	<btype type= "1" names="double">
-		<branch name="Ereco"/>
-		<branch name="Etrue"/>
-		<branch name="L"/>
-		<branch name="Weight"/>
-	</btype>
-	<btype type= "2" names="int_array">
-	</btype>
-	<btype type= "3" names="double_array">
-	</btype>
-</MCevents>
-
-
-<MCevents  multisim="1" name="nubar_dune_elike_taumisidbar" filename="/home/mark/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_ntuple.root" pot="1" potscale="1">
-	<parameters
-		names = "ALL"
-	/>
-	<btype type="0" names="int">
-		<branch name="NuType"/>
-	</btype>
-	<btype type= "1" names="double">
-		<branch name="Ereco"/>
-		<branch name="Etrue"/>
-		<branch name="L"/>
-		<branch name="Weight"/>
-	</btype>
-	<btype type= "2" names="int_array">
-	</btype>
-	<btype type= "3" names="double_array">
-	</btype>
-</MCevents>
-
-
-<MCevents  multisim="1" name="nubar_dune_elike_ncmisidbar" filename="/home/mark/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_ntuple.root" pot="1" potscale="1">
-	<parameters
-		names = "ALL"
-	/>
-	<btype type="0" names="int">
-		<branch name="NuType"/>
-	</btype>
-	<btype type= "1" names="double">
-		<branch name="Ereco"/>
-		<branch name="Etrue"/>
-		<branch name="L"/>
-		<branch name="Weight"/>
-	</btype>
-	<btype type= "2" names="int_array">
-	</btype>
-	<btype type= "3" names="double_array">
-	</btype>
-</MCevents>
-
-<MCevents  multisim="1" name="nubar_dune_elike_ncmisid" filename="/home/mark/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_ntuple.root" pot="1" potscale="1">
-	<parameters
-		names = "ALL"
-	/>
-	<btype type="0" names="int">
-		<branch name="NuType"/>
-	</btype>
-	<btype type= "1" names="double">
-		<branch name="Ereco"/>
-		<branch name="Etrue"/>
-		<branch name="L"/>
-		<branch name="Weight"/>
-	</btype>
-	<btype type= "2" names="int_array">
-	</btype>
-	<btype type= "3" names="double_array">
-	</btype>
-</MCevents>
-
-
-<MCevents  multisim="1" name="nubar_dune_mulike_intrinsicbar" filename="/home/mark/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_ntuple.root" pot="1" potscale="1">
-	<parameters
-		names = "ALL"
-	/>
-	<btype type="0" names="int">
-		<branch name="NuType"/>
-	</btype>
-	<btype type= "1" names="double">
-		<branch name="Ereco"/>
-		<branch name="Etrue"/>
-		<branch name="L"/>
-		<branch name="Weight"/>
-	</btype>
-	<btype type= "2" names="int_array">
-	</btype>
-	<btype type= "3" names="double_array">
-	</btype>
-</MCevents>
-
-
-<MCevents  multisim="1" name="nubar_dune_mulike_taumisidbar" filename="/home/mark/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_ntuple.root" pot="1" potscale="1">
-	<parameters
-		names = "ALL"
-	/>
-	<btype type="0" names="int">
-		<branch name="NuType"/>
-	</btype>
-	<btype type= "1" names="double">
-		<branch name="Ereco"/>
-		<branch name="Etrue"/>
-		<branch name="L"/>
-		<branch name="Weight"/>
-	</btype>
-	<btype type= "2" names="int_array">
-	</btype>
-	<btype type= "3" names="double_array">
-	</btype>
-</MCevents>
-
-
-
 
 
 <MCevents  multisim="1" name="nubar_dune_elike_fullosc" filename="/home/mark/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_ntuple.root" pot="1" potscale="1">
@@ -549,6 +378,27 @@
 	</btype>
 </MCevents>
 
+
+<MCevents  multisim="1" name="nubar_dune_elike_antifullosc" filename="/home/mark/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_ntuple.root" pot="1" potscale="1">
+	<parameters
+		names = "ALL"
+	/>
+	<btype type="0" names="int">
+		<branch name="NuType"/>
+	</btype>
+	<btype type= "1" names="double">
+		<branch name="Ereco"/>
+		<branch name="Etrue"/>
+		<branch name="L"/>
+		<branch name="Weight"/>
+	</btype>
+	<btype type= "2" names="int_array">
+	</btype>
+	<btype type= "3" names="double_array">
+	</btype>
+</MCevents>
+
+
 <MCevents  multisim="1" name="nubar_dune_elike_intrinsic" filename="/home/mark/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_ntuple.root" pot="1" potscale="1">
 	<parameters
 		names = "ALL"
@@ -568,7 +418,47 @@
 	</btype>
 </MCevents>
 
+<MCevents  multisim="1" name="nubar_dune_elike_antiintrinsic" filename="/home/mark/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_ntuple.root" pot="1" potscale="1">
+	<parameters
+		names = "ALL"
+	/>
+	<btype type="0" names="int">
+		<branch name="NuType"/>
+	</btype>
+	<btype type= "1" names="double">
+		<branch name="Ereco"/>
+		<branch name="Etrue"/>
+		<branch name="L"/>
+		<branch name="Weight"/>
+	</btype>
+	<btype type= "2" names="int_array">
+	</btype>
+	<btype type= "3" names="double_array">
+	</btype>
+</MCevents>
+
 <MCevents  multisim="1" name="nubar_dune_elike_mumisid" filename="/home/mark/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_ntuple.root" pot="1" potscale="1">
+	<parameters
+		names = "ALL"
+	/>
+	<btype type="0" names="int">
+		<branch name="NuType"/>
+	</btype>
+	<btype type= "1" names="double">
+		<branch name="Ereco"/>
+		<branch name="Etrue"/>
+		<branch name="L"/>
+		<branch name="Weight"/>
+	</btype>
+	<btype type= "2" names="int_array">
+	</btype>
+	<btype type= "3" names="double_array">
+	</btype>
+</MCevents>
+
+
+
+<MCevents  multisim="1" name="nubar_dune_elike_antimumisid" filename="/home/mark/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_ntuple.root" pot="1" potscale="1">
 	<parameters
 		names = "ALL"
 	/>
@@ -608,7 +498,8 @@
 </MCevents>
 
 
-<MCevents  multisim="1" name="nubar_dune_elike_ncmisidbar" filename="/home/mark/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_ntuple.root" pot="1" potscale="1">
+
+<MCevents  multisim="1" name="nubar_dune_elike_antitaumisid" filename="/home/mark/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_ntuple.root" pot="1" potscale="1">
 	<parameters
 		names = "ALL"
 	/>
@@ -626,7 +517,6 @@
 	<btype type= "3" names="double_array">
 	</btype>
 </MCevents>
-
 
 <MCevents  multisim="1" name="nubar_dune_elike_ncmisid" filename="/home/mark/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_ntuple.root" pot="1" potscale="1">
 	<parameters
@@ -648,7 +538,46 @@
 </MCevents>
 
 
+<MCevents  multisim="1" name="nubar_dune_elike_antincmisid" filename="/home/mark/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_ntuple.root" pot="1" potscale="1">
+	<parameters
+		names = "ALL"
+	/>
+	<btype type="0" names="int">
+		<branch name="NuType"/>
+	</btype>
+	<btype type= "1" names="double">
+		<branch name="Ereco"/>
+		<branch name="Etrue"/>
+		<branch name="L"/>
+		<branch name="Weight"/>
+	</btype>
+	<btype type= "2" names="int_array">
+	</btype>
+	<btype type= "3" names="double_array">
+	</btype>
+</MCevents>
+
 <MCevents  multisim="1" name="nubar_dune_mulike_intrinsic" filename="/home/mark/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_ntuple.root" pot="1" potscale="1">
+	<parameters
+		names = "ALL"
+	/>
+	<btype type="0" names="int">
+		<branch name="NuType"/>
+	</btype>
+	<btype type= "1" names="double">
+		<branch name="Ereco"/>
+		<branch name="Etrue"/>
+		<branch name="L"/>
+		<branch name="Weight"/>
+	</btype>
+	<btype type= "2" names="int_array">
+	</btype>
+	<btype type= "3" names="double_array">
+	</btype>
+</MCevents>
+
+
+<MCevents  multisim="1" name="nubar_dune_mulike_antiintrinsic" filename="/home/mark/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_ntuple.root" pot="1" potscale="1">
 	<parameters
 		names = "ALL"
 	/>
@@ -688,6 +617,24 @@
 </MCevents>
 
 
+<MCevents  multisim="1" name="nubar_dune_mulike_antitaumisid" filename="/home/mark/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_ntuple.root" pot="1" potscale="1">
+	<parameters
+		names = "ALL"
+	/>
+	<btype type="0" names="int">
+		<branch name="NuType"/>
+	</btype>
+	<btype type= "1" names="double">
+		<branch name="Ereco"/>
+		<branch name="Etrue"/>
+		<branch name="L"/>
+		<branch name="Weight"/>
+	</btype>
+	<btype type= "2" names="int_array">
+	</btype>
+	<btype type= "3" names="double_array">
+	</btype>
+</MCevents>
 
 <MCevents  multisim="1" name="nubar_dune_mulike_ncmisid" filename="/home/mark/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_ntuple.root" pot="1" potscale="1">
 	<parameters
@@ -708,6 +655,25 @@
 	</btype>
 </MCevents>
 
+
+<MCevents  multisim="1" name="nubar_dune_mulike_antincmisid" filename="/home/mark/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_ntuple.root" pot="1" potscale="1">
+	<parameters
+		names = "ALL"
+	/>
+	<btype type="0" names="int">
+		<branch name="NuType"/>
+	</btype>
+	<btype type= "1" names="double">
+		<branch name="Ereco"/>
+		<branch name="Etrue"/>
+		<branch name="L"/>
+		<branch name="Weight"/>
+	</btype>
+	<btype type= "2" names="int_array">
+	</btype>
+	<btype type= "3" names="double_array">
+	</btype>
+</MCevents>
 
 
 
