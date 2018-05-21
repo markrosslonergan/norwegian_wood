@@ -278,7 +278,7 @@ int main(int argc, char* argv[])
 		dcp180_i_o.preCalculateProbs();
 
 		std::cout<<"DUNE_SBN:: "<<"Running MC for IO HO 0"<<std::endl;
-		dcp0_i_o.doMC("gentest0_i_o");
+		:cp0_i_o.doMC("gentest0_i_o");
 		std::cout<<"DUNE_SBN:: "<<"Running MC for IO HO 180"<<std::endl;
 		dcp180_i_o.doMC("gentest180_i_o");
 		std::cout<<"DUNE_SBN:: "<<"Constructing a chi^2 for IO HO 0"<<std::endl;
@@ -289,7 +289,7 @@ int main(int argc, char* argv[])
 
 
 
-			std::ofstream dunestream;
+		std::ofstream dunestream;
 		dunestream.open ("DUNE_dcp_IO.dat");
 		bool print = true;
 
@@ -525,6 +525,7 @@ int main(int argc, char* argv[])
 				}
 			}	
 		}
+
 	}else if(which_mode =="cpv"){
 		std::ofstream dunestream;
 		dunestream.open ("DUNE_cpv2.dat");
@@ -632,8 +633,6 @@ int main(int argc, char* argv[])
 
 
 
-
-
 		//Here, vary the truth by poissonian_noise and build a distributuon for this. This is p-d/d then
 		std::vector<SBNspec> MCspecs; 
 		TFile *fout= new TFile("DUNE_detail.root","recreate");	
@@ -687,6 +686,8 @@ int main(int argc, char* argv[])
 		hist_test0.Write();
 		hist_test180.Write();
 		fout->Close();
+
+
 	}else if(which_mode =="compare"){
 
 
@@ -734,7 +735,6 @@ int main(int argc, char* argv[])
 		sterile->doMC();
 
 		SBNchi mychi(*truth,*m);	
-
 
 		std::cout<<"Compare Chi: "<<mychi.CalcChi(sterile)<<std::endl;
 		truth->compareSBNspecs(sterile,"DUNE_compare.root");
