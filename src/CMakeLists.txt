@@ -5,8 +5,10 @@ include_directories(inc)
 add_executable (dune_sbn dune_sbn.cxx genDune.cxx )
 add_executable (probtest probtest.cxx)
 add_executable (biprob biprob.cxx)
+add_executable (combined combined.cxx genDune.cxx)
 
 target_link_libraries (dune_sbn SBNfitlib tinyxmllib ${ROOT_LIBRARIES} ${GSL_LIBRARIES} )
 target_link_libraries (probtest SBNfitlib tinyxmllib ${ROOT_LIBRARIES} ${GSL_LIBRARIES} )
 target_link_libraries (biprob SBNfitlib tinyxmllib ${ROOT_LIBRARIES} ${GSL_LIBRARIES} )
+target_link_libraries (combined SBNfitlib tinyxmllib ${ROOT_LIBRARIES} ${GSL_LIBRARIES} )
 
