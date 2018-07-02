@@ -6,25 +6,39 @@
 #include "SBgeN.h"
 #include "SBNprob.h"
 
+
+
 class genDUNE : public sbn::SBgeN {
-	public:
-		sbn::SBNprob * prob;
+    
+    bool debug = false;
+    public:
+		sbn::SBNprob * prob;//yj SBNprob prob
 		genDUNE(std::string xmlname):SBgeN(xmlname){
+            
+            if(debug) std::cout<<"Searching for memory leak 1"<<std::endl;
+
+            
+            
 			prob = new sbn::SBNprob(4);
 		
 			near_detector_weight = 5.0;
 			far_detector_weight = 1.0;
+            
+            if(debug) std::cout<<"Searching for memory leak 2"<<std::endl;
+
 
 			for(int i = 0; i < multisim_name.size(); i++){
 				std::string s = multisim_name.at(i);
-				//std::cout<<s<<std::endl;
-				std::string delimiter = "_";
+				
+                if(debug) std::cout<<s<<std::endl;
+				
+                std::string delimiter = "_";
 				size_t pos = 0;
 				std::string token;
 				std::vector<std::string> breakdown_filename;
 
 	
-				std::cout<<"Multisim: "<<s<<std::endl;
+				if(debug) std::cout<<"Multisim: "<<s<<std::endl;
 				while (true) {
 					pos = s.find(delimiter);
 					token = s.substr(0, pos);
@@ -34,32 +48,41 @@ class genDUNE : public sbn::SBgeN {
 				}
 				if(breakdown_filename.at(0) == "nu"){
 					std::string near_name = "nu_near_"+breakdown_filename.at(2)+"_"+breakdown_filename.at(3);
-					std::cout<<"Mapped to: "<<near_name<<" @ "<<map_hist[near_name]<<std::endl;
+					if(debug) std::cout<<"Mapped to: "<<near_name<<" @ "<<map_hist[near_name]<<std::endl;
 					near_detector_name_map[ multisim_name.at(i)] = near_name;
 					near_map_hist[ multisim_name.at(i)] = map_hist[near_name] ;
 				} else if (breakdown_filename.at(0)=="nubar"){
 					std::string near_name = "nubar_near_"+breakdown_filename.at(2)+"_"+breakdown_filename.at(3);
-					std::cout<<"Mapped to: "<<near_name<<" @ "<<map_hist[near_name]<<std::endl;
+					if(debug) std::cout<<"Mapped to: "<<near_name<<" @ "<<map_hist[near_name]<<std::endl;
 					near_detector_name_map[multisim_name.at(i)] = near_name;
 					near_map_hist[multisim_name.at(i)] = map_hist[near_name]  ;			
 				}
 
 
 				if (map_hist.count(multisim_name.at(i))!=1){
-					std::cout<<"ERROR: one of the input multisim_tree's is not in the xml config: "<<multisim_name.at(i)<<std::endl;
+					if(debug) std::cout<<"ERROR: one of the input multisim_tree's is not in the xml config: "<<multisim_name.at(i)<<std::endl;
 					exit(EXIT_FAILURE);
 				}
 
 
 			}
+            
+            if(debug) std::cout<<"Searching for memory leak 3"<<std::endl;
+
 
 
 			this->getOscPattern();
+            
+            if(debug) std::cout<<"Searching for memory leak 4"<<std::endl;
+
 
 			for(int i=0; i< fullnames.size(); i++){
 				oscillation_patterns.push_back(osc_pattern_map[fullnames.at(i)]);
-				std::cout<<"FRT: "<<i<<" "<<fullnames.at(i)<<" "<<oscillation_patterns.back().first<<" "<<oscillation_patterns.back().second<<std::endl;
-			}		
+				if(debug) std::cout<<"FRT: "<<i<<" "<<fullnames.at(i)<<" "<<oscillation_patterns.back().first<<" "<<oscillation_patterns.back().second<<std::endl;
+			}
+            
+            if(debug) std::cout<<"Searching for memory leak 5"<<std::endl;
+
 	
 
 		}

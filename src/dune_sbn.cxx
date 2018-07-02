@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <iterator>
 
+
 #include "TFile.h"
 #include "TTree.h"
 #include "TH1F.h"
@@ -46,15 +47,24 @@
 using namespace sbn;
 
 
-	template <typename T>
+template <typename T>
 std::string to_string_prec(const T a_value, const int n = 6)
 {
-	std::ostringstream out;
-	out <<std::fixed<< std::setprecision(n) << a_value;
-	return out.str();
+  std::ostringstream out;
+  out <<std::fixed<< std::setprecision(n) << a_value;
+  //what is std::fixed? // just returning the number with 6 digits.
+  return out.str();
 }
 
+#include <limits>
 
+std::fstream& GotoLine(std::fstream& file, unsigned int num){
+  file.seekg(std::ios::beg);
+  for(int i=0; i < num - 1; ++i){
+    file.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+  }
+  return file;
+}
 
 
 
@@ -68,743 +78,1043 @@ int main(int argc, char* argv[])
 {
 
 
-	std::string xml = "../../xml/dune.xml";
-	int iarg = 0;
-	opterr=1;
-	int index; 
-	int test_mode=0;
-	std::string filename = "default.root";
-	std::string which_mode = "default";
+  std::string xml = "/a/data/westside/yjwa/NW/norwegian_wood/xml/dune.xml";
+  int iarg = 0;
+  opterr=1;
+  int index; 
+  int test_mode=0;
+  std::string filename = "default.root";
+  std::string which_mode = "default";
 
 
-	TRandom3 *rangen= new TRandom3();
-	/*************************************************************
-	 *************************************************************
-	 *		Command Line Argument Reading
-	 ************************************************************
-	 ************************************************************/
+  TRandom3 *rangen= new TRandom3();
+  /*************************************************************
+   *************************************************************
+   *		Command Line Argument Reading
+   ************************************************************
+   ************************************************************/
 
-	const struct option longopts[] = 
+  const struct option longopts[] = 
+    {
+      {"xml", 		required_argument, 	0, 'x'},
+      {"test",		required_argument,	0, 't'},
+      {"mode",		required_argument,	0, 'm'},
+      {"file",		required_argument,	0, 'f'},
+      {0,			no_argument, 		0, 0},
+      {"process",			required_argument, 	0,  'p'},
+      {"cpv4", required_argument, 0, 'c'},
+    };
+
+    
+  int which_process = -1 ;
+
+  while(iarg != -1)
+    {
+      iarg = getopt_long(argc,argv, "x:m:t:f:p:c:", longopts, &index);
+
+      //if(0 <iarg && iarg< 1000){
+        
+      //     process = iarg;
+            
+      //std::cout << "Process is " << process << std::endl;
+      //}
+        
+      switch(iarg)
 	{
-		{"xml", 		required_argument, 	0, 'x'},
-		{"test",		required_argument,	0, 't'},
-		{"mode",		required_argument,	0, 'm'},
-		{"file",		required_argument,	0, 'f'},
-		{0,			no_argument, 		0,  0},
-	};
+	case 'x':
+	  xml = optarg;
+	  break;
+	case 'f':
+	  filename = optarg;//`strtof(optarg,NULL);
+	  break;
+	case 'm':
+	  which_mode = optarg;//`strtof(optarg,NULL);
+	  break;
+	case 'p':
+	  //whiche_mode = "gen4";
+	  which_process = atoi(optarg)+1;
+	  which_mode = "process_gen4";
 
+	  std::cout<<"optarg : " <<which_process << std::endl;
+	  std::cout<<"optarg : " <<which_process << " mode : " << which_mode<< std::endl;
+	  break;
 
-	while(iarg != -1)
-	{
-		iarg = getopt_long(argc,argv, "x:m:t:f:", longopts, &index);
+	case 'c':
+	  which_process = atoi(optarg)+1;
+	  which_mode = "process_cpv4";
+	  std::cout<<"optarg : " <<which_process << std::endl;
+	  std::cout<<"optarg : " <<which_process << " mode : " << which_mode<< std::endl;
 
-		switch(iarg)
-		{
-			case 'x':
-				xml = optarg;
-				break;
-			case 'f':
-				filename = optarg;//`strtof(optarg,NULL);
-				break;
-			case 'm':
-				which_mode = optarg;//`strtof(optarg,NULL);
-				break;
-
-			case 't':
-				test_mode = strtof(optarg,NULL);
-				break;
-			case '?':
-			case 'h':
-				std::cout<<"Allowed arguments:"<<std::endl;
-				std::cout<<"\t-x\t--xml\t\tInput .xml file for SBNconfig"<<std::endl;
-				return 0;
-		}
-
+	  break;
+	case 't':
+	  test_mode = strtof(optarg,NULL);
+	  break;
+	case 'h':
+	  std::cout<<"Allowed arguments:"<<std::endl;
+	  std::cout<<"\t-x\t--xml\t\tInput .xml file for SBNconfig"<<std::endl;
+	  return 0;
 	}
 
-	//SBNspec * dune_spec = new SBNspec("~/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_bf"  , xml);
-	//dune_spec->writeOut("dune_test.root");
+    }
+
+  //SBNspec * dune_spec = new SBNspec("~/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_bf"  , xml);
+  //dune_spec->writeOut("dune_test.root");
+
+  if(which_mode == "default"){
+    //*************************************************************************//
+    //*************************************************************************//
+    std::cout<<" Starting Default Mode: "<<std::endl;
+    //*************************************************************************//
+    //*************************************************************************//
+    std::vector<double> angles = {30, 44, 8, 0,0,0};
+    std::vector<double> phases = {0,0,0};
+    std::vector<double> mass_splittings = {7.5*pow(10,-5), 2.552*pow(10,-3),0};
+    genDUNE bkg_only(xml); //yj genDUNE!
+
+    bkg_only.prob = new SBNprob(4, angles, phases, mass_splittings);
+    bkg_only.preCalculateProbs();
+
+    bkg_only.doMC("three_neutrino");
+    bkg_only.writeOut("three_neutrino.root");
+
+    return 0;
+
+
+
+  }
+
+  else if(which_mode =="order"){
+    std::ofstream dunestream;
+    dunestream.open ("DUNE_order_NO.dat");
+        
+    std::vector<double> angles = {33.6, 42.1, 8.5, 0,0,0};
+    std::vector<double> angles_oct = {33.6, 49.6, 8.5, 0,0,0};
+    std::vector<double> phases = {0,0,0};
+    std::vector<double> phases_180 = {180,0,0};
+    //http://lbne2-docdb.fnal.gov/cgi-bin/RetrieveFile?docid=10688&filename=DUNE-CDR-physics-volume.pdf&version=10
+    std::vector<double> mass_splittings = {7.5*pow(10,-5), 2.457*pow(10,-3),0};
+    std::vector<double> mass_splittings_inv = {7.5*pow(10,-5), -2.449*pow(10,-3),0};
+        
+    TFile *fin = new TFile("/a/data/westside/yjwa/NW/norwegian_wood/covar/covariance_matrices_xcheck_1408x1408.root","read");
+    TMatrixT<double> * m = (TMatrixT<double>*)fin->Get("TMatrixT<double>;1");
+        
+    std::vector<std::string> order_names = {"NO","IO"};
+    std::vector<double> order_vals = {2.457*pow(10,-3), -2.449*pow(10,-3)};
+        
+    std::vector<double> theta23 = {38,40,42,44,45,46,47,49,51,53};
+        
+    //for(double tru_dcp = 0; tru_dcp<=360; tru_dcp+=15){
+    std::vector<double> min_chi;
+            
+    for(double tru_dcp = 0; tru_dcp<=360; tru_dcp+=15){
+
+      std::vector<double> chi_all;
+      //min_element(vec.begin(), vec.end())
+      //for(int ord = 0; ord<2; ord++){
+	    
+      double temp_chi = 9999.;
+      for(int tru_i23 =0; tru_i23 < theta23.size(); tru_i23++){
+
+	std::string truth_name = order_names.at(0)+"_DCP_"+to_string_prec(tru_dcp , 3)+"_T23_"+to_string_prec(theta23.at(tru_i23),3);
+	SBNspec * truth = new SBNspec(("precomp/"+truth_name+".SBNspec").c_str(),xml);
+	truth->compressVector();
+	std::cout << "assume truth : " <<truth_name << std::endl;
+	SBNchi mychi(*truth,*m);
+	//std::vector<double> chi_all;
+	//std::vector<double> chi_0pi;
+	for(double dcp=0; dcp <=360; dcp+=15){
+	  for(int i23 =0; i23 < theta23.size(); i23++){
+	    std::string name = order_names.at(1)+"_DCP_"+to_string_prec(dcp,3)+"_T23_"+to_string_prec(theta23.at(i23),3);
+               
+	    std::string name_sub = order_names.at(0)+"_DCP_"+to_string_prec(dcp,3)+"_T23_"+to_string_prec(theta23.at(i23),3);
+
+	    SBNspec * test = new SBNspec(("precomp/"+name+".SBNspec").c_str(),xml);
+	    SBNspec * test_sub = new SBNspec(("precomp/"+name_sub+".SBNspec").c_str(),xml);
+	    //std::cout<< "test : " << name << std:: endl;
+
+	    double chi = mychi.CalcChi(test);
+	    double chi_sub = mychi.CalcChi(test_sub);
+
+	    double delta_chi = chi - chi_sub;
+
+	    //std::cout << "chi"<<chi <<" , temp min : "<< temp_chi << std::endl;
+
+  
+	    if (delta_chi<temp_chi){
+	      temp_chi = delta_chi;
+	    }
+	    chi_all.push_back(chi);
+	    delete test;
+	  }
+	}
+	      
+
+      }
+
+	    
+
+      dunestream<<"order true_dcp "<<tru_dcp<<" "<<temp_chi<<std::endl;
+      std::cout<<"order true_dcp "<<tru_dcp<<" "<< temp_chi <<std::endl;                
+    }
 
-	if(which_mode == "default"){
-		//*************************************************************************//
-		//*************************************************************************//
-		std::cout<<" Starting Default Mode: "<<std::endl;
-		//*************************************************************************//
-		//*************************************************************************//
-		std::vector<double> angles = {30, 44, 8, 0,0,0};
-		std::vector<double> phases = {0,0,0};
-		std::vector<double> mass_splittings = {7.5*pow(10,-5), 2.552*pow(10,-3),0};
-		genDUNE bkg_only(xml);
+	    
 
-		bkg_only.prob = new SBNprob(4, angles, phases, mass_splittings);
-		bkg_only.preCalculateProbs();
 
-		bkg_only.doMC("three_neutrino");
-		bkg_only.writeOut("three_neutrino.root");
-
-		return 0;
-
-
-
-	} else if(which_mode == "dcp"){
-		//*************************************************************************//
-		//*************************************************************************//
-		std::cout<<" Starting Default Mode: "<<std::endl;
-		//*************************************************************************//
-		//*************************************************************************//
-		genDUNE base(xml);
-
-
-		//in degrees! t12, t23, t13 
-		std::vector<double> angles = {33.62, 42.1304, 8.4750, 0,0,0};
-		std::vector<double> angles_oct = {33.62, 49.6, 8.4750, 0,0,0};
-		std::vector<double> phases = {0,0,0};
-		std::vector<double> phases_180 = {180.0,0,0};
-		//http://lbne2-docdb.fnal.gov/cgi-bin/RetrieveFile?docid=10688&filename=DUNE-CDR-physics-volume.pdf&version=10
-		std::vector<double> mass_splittings = {7.5*pow(10,-5), 2.457*pow(10,-3),0};
-		std::vector<double> mass_splittings_inv = {7.5*pow(10,-5), -2.449*pow(10,-3),0};
-
-
-		TFile *fin = new TFile("/home/mark/work/pheno/DUNE+SBN/covar/covariance_matrices_xcheck_1408x1408.root","read");
-		TMatrixT<double> * m = (TMatrixT<double>*)fin->Get("TMatrixT<double>;1");
-
-		std::vector<genDUNE*> test_points;
-		std::vector<SBNchi*> test_chis;
-		std::vector<double> theta23_testpts = {40,42.1304,45,49.6,50};
-
-		for(int i=0; i<theta23_testpts.size(); i++){
-			std::vector<double> angles_test = {33.62, theta23_testpts.at(i), 8.4750,0,0,0};
-
-			test_points.push_back(new genDUNE(xml));
-			test_points.back()->prob = new SBNprob(4,angles_test,phases,mass_splittings);	
-			test_points.back()->preCalculateProbs();	
-			std::cout<<"DUNE_SBN:: "<<"Running MC for  NO dcp 0 theta23 "<<theta23_testpts.at(i)<<std::endl;
-			test_points.back()->doMC("NO_dcp0_"+std::to_string(theta23_testpts.at(i)));
-			test_chis.push_back(new SBNchi(*test_points.back(),*m));				
-
-
-			test_points.push_back(new genDUNE(xml));
-			test_points.back()->prob = new SBNprob(4,angles_test,phases_180,mass_splittings);	
-			test_points.back()->preCalculateProbs();	
-			std::cout<<"DUNE_SBN:: "<<"Running MC for  NO dcp 180 theta23 "<<theta23_testpts.at(i)<<std::endl;
-			test_points.back()->doMC("NO_dcp180_"+std::to_string(theta23_testpts.at(i)));
-			test_chis.push_back(new SBNchi(*test_points.back(),*m));				
-
-			test_points.push_back(new genDUNE(xml));
-			test_points.back()->prob = new SBNprob(4,angles_test,phases,mass_splittings_inv);	
-			test_points.back()->preCalculateProbs();	
-			std::cout<<"DUNE_SBN:: "<<"Running MC for  I0 dcp 0 theta23 "<<theta23_testpts.at(i)<<std::endl;
-			test_points.back()->doMC("IO_dcp0_"+std::to_string(theta23_testpts.at(i)));
-			test_chis.push_back(new SBNchi(*test_points.back(),*m));				
-
-			test_points.push_back(new genDUNE(xml));
-			test_points.back()->prob = new SBNprob(4,angles_test,phases_180,mass_splittings_inv);	
-			test_points.back()->preCalculateProbs();	
-			std::cout<<"DUNE_SBN:: "<<"Running MC for  IP dcp 180 theta23 "<<theta23_testpts.at(i)<<std::endl;
-			test_points.back()->doMC("IO_dcp180_"+std::to_string(theta23_testpts.at(i)));
-			test_chis.push_back(new SBNchi(*test_points.back(),*m));				
-		}
-
-		test_points.at(4)->compareSBNspecs(test_points.at(5),"comptets.root");
-
-		//NO low octant
-		/*	genDUNE dcp0   = base;
-			genDUNE dcp180 = base;
-			dcp0.prob = new SBNprob(4, angles, phases, mass_splittings);
-			dcp0.preCalculateProbs();
-			phases.at(0) = 180;
-			dcp180.prob = new SBNprob(4, angles, phases, mass_splittings);
-			dcp180.preCalculateProbs();
-
-			std::cout<<"DUNE_SBN:: "<<"Running MC for NO LO 0"<<std::endl;
-			dcp0.doMC("gentest0");
-			std::cout<<"DUNE_SBN:: "<<"Running MC for NO LO 180"<<std::endl;
-			dcp180.doMC("gentest180");
-			std::cout<<"DUNE_SBN:: "<<"Constructing a chi^2 for NO LO 0"<<std::endl;
-			SBNchi mychi0(dcp0,*m);
-			std::cout<<"DUNE_SBN:: "<<"Constructing a chi^2 for NO LO 180"<<std::endl;
-			SBNchi mychi180(dcp180,*m);
-
-
-		//NO high octant
-		genDUNE dcp0_o= base;
-		genDUNE dcp180_o= base;
-		phases.at(0) = 0;
-		dcp0_o.prob = new SBNprob(4, angles_oct, phases, mass_splittings);
-		dcp0_o.preCalculateProbs();
-		phases.at(0) = 180;
-		dcp180_o.prob = new SBNprob(4, angles_oct, phases, mass_splittings);
-		dcp180_o.preCalculateProbs();
-
-		std::cout<<"DUNE_SBN:: "<<"Running MC for NO HO 0"<<std::endl;
-		dcp0_o.doMC("gentest0_o");
-		std::cout<<"DUNE_SBN:: "<<"Running MC for NO HO 180"<<std::endl;
-		dcp180_o.doMC("gentest180_o");
-		std::cout<<"DUNE_SBN:: "<<"Constructing a chi^2 for NO HO 0"<<std::endl;
-		SBNchi mychi0_o(dcp0_o,*m);
-		std::cout<<"DUNE_SBN:: "<<"Constructing a chi^2 for NO HO 180"<<std::endl;
-		SBNchi mychi180_o(dcp180_o,*m);
-
-
-		//IO low octant
-		genDUNE dcp0_i= base;
-		genDUNE dcp180_i= base;
-		phases.at(0) = 0;
-		dcp0_i.prob = new SBNprob(4, angles, phases, mass_splittings_inv);
-		dcp0_i.preCalculateProbs();
-		phases.at(0) = 180;
-		dcp180_i.prob = new SBNprob(4, angles, phases, mass_splittings_inv);
-		dcp180_i.preCalculateProbs();
-
-		std::cout<<"DUNE_SBN:: "<<"Running MC for IO LO 0"<<std::endl;
-		dcp0_i.doMC("gentest0_i");
-		std::cout<<"DUNE_SBN:: "<<"Running MC for IO LO 180"<<std::endl;
-		dcp180_i.doMC("gentest180_i");
-		std::cout<<"DUNE_SBN:: "<<"Constructing a chi^2 for IO LO 0"<<std::endl;
-		SBNchi mychi0_i(dcp0_i,*m);
-		std::cout<<"DUNE_SBN:: "<<"Constructing a chi^2 for IO LO 180"<<std::endl;
-		SBNchi mychi180_i(dcp180_i,*m);
-
-
-
-		//IO high octant
-		genDUNE dcp0_i_o= base;
-		genDUNE dcp180_i_o= base;
-		phases.at(0) = 0;
-		dcp0_i_o.prob = new SBNprob(4, angles_oct, phases, mass_splittings_inv);
-		dcp0_i_o.preCalculateProbs();
-		phases.at(0) = 180;
-		dcp180_i_o.prob = new SBNprob(4, angles_oct, phases, mass_splittings_inv);
-		dcp180_i_o.preCalculateProbs();
-
-		std::cout<<"DUNE_SBN:: "<<"Running MC for IO HO 0"<<std::endl;
-		:cp0_i_o.doMC("gentest0_i_o");
-		std::cout<<"DUNE_SBN:: "<<"Running MC for IO HO 180"<<std::endl;
-		dcp180_i_o.doMC("gentest180_i_o");
-		std::cout<<"DUNE_SBN:: "<<"Constructing a chi^2 for IO HO 0"<<std::endl;
-		SBNchi mychi0_i_o(dcp0_i_o,*m);
-		std::cout<<"DUNE_SBN:: "<<"Constructing a chi^2 for IO HO 180"<<std::endl;
-		SBNchi mychi180_i_o(dcp180_i_o,*m);
-		*/
-
-
-
-		std::ofstream dunestream;
-		dunestream.open ("DUNE_dcp_IO.dat");
-		bool print = true;
-
-		for(double dcp = 0; dcp <= 360; dcp += 10.0){
-
-			std::cout<<"DUNE_SBN:: "<<"On dcp "<<dcp<<std::endl;
-			genDUNE *testGen = new genDUNE(xml);
-			phases.at(0) = dcp; 
-
-			testGen->prob = new SBNprob(4, angles, phases, mass_splittings);	
-			testGen->preCalculateProbs();
-
-			std::cout<<"DUNE_SBN:: "<<"Doing MC on dcp "<<dcp<<std::endl;
-			testGen->doMC();
-			testGen->compressVector();
-
-			//SBNchi mychi(*testGen, *m);
-
-
-			std::vector<double> chis;
-			std::vector<double> chis_old;
-			for(int i=0; i<test_points.size(); i++){
-				test_points.at(i)->compressVector();
-				chis.push_back( test_chis.at(i)->CalcChi(testGen));
-				//TH1D hist_test = (TH1D) mychi.toyMC_varyInput(test_points.at(i), 1000);
-				//TH1D hist_truth = (TH1D) mychi.toyMC_varyInput(testGen, 1000);
-
-				//double ans = hist_test.GetMean()-hist_truth.GetMean();
-				//if(ans<0)ans=0;
-				//chis.push_back(ans);
-
-
-			}
-			/*std::cout<<"DUNE_SBN:: "<<"Calc chi^2  NOLO 180 on dcp "<<dcp<<std::endl;
-			  double chi180 = mychi.CalcChi(&dcp180);
-			  double chi0 = mychi.CalcChi(&dcp0);
-
-			  std::cout<<"DUNE_SBN:: "<<"Calc chi^2  IOLO 180 on dcp "<<dcp<<std::endl;
-			  double chi180_i = mychi.CalcChi(&dcp180_i);
-			  double chi0_i = mychi.CalcChi(&dcp0_i);
-
-			  std::cout<<"DUNE_SBN:: "<<"Calc chi^2  NOHO 180 on dcp "<<dcp<<std::endl;
-			  double chi180_o = mychi.CalcChi(&dcp180_o);
-			  double chi0_o = mychi.CalcChi(&dcp0_o);
-
-			  std::cout<<"DUNE_SBN:: "<<"Calc chi^2  IOHO 180 on dcp "<<dcp<<std::endl;
-			  double chi180_i_o = mychi.CalcChi(&dcp180_i_o);
-			  double chi0_i_o = mychi.CalcChi(&dcp0_i_o);
-
-
-			  std::cout<<"DUNE_SBN:: "<<"Calc chi^2  NOLO 180 on dcp "<<dcp<<std::endl;
-			  double chi180 = mychi180.CalcChi(testGen);
-			  double chi0 = mychi0.CalcChi(testGen);
-
-			  std::cout<<"DUNE_SBN:: "<<"Calc chi^2  IOLO 180 on dcp "<<dcp<<std::endl;
-			  double chi180_i = mychi180_i.CalcChi(testGen);
-			  double chi0_i = mychi0_i.CalcChi(testGen);
-
-			  std::cout<<"DUNE_SBN:: "<<"Calc chi^2  NOHO 180 on dcp "<<dcp<<std::endl;
-			  double chi180_o = mychi180_o.CalcChi(testGen);
-			  double chi0_o = mychi0_o.CalcChi(testGen);
-
-			  std::cout<<"DUNE_SBN:: "<<"Calc chi^2  IOHO 180 on dcp "<<dcp<<std::endl;
-			  double chi180_i_o = mychi180_i_o.CalcChi(testGen);
-			  double chi0_i_o = mychi0_i_o.CalcChi(testGen);
-			 */
-
-
-
-
-			//std::vector<double> chis = {chi0, chi0_i, chi0_o, chi0_i_o, chi180, chi180_i, chi180_o, chi180_i_o};
-			double chimin = 99999999;
-
-			dunestream<<"ANK: "<<dcp;//" "<<chi0<<" "<<chi180<<" "<<std::min(chi0,chi180)<<std::endl;
-			int l=0;
-			int which = 0;
-			for(auto &X: chis){
-				dunestream<<" "<<X;
-				if(X<chimin) {
-					chimin = X;
-					which = l;
-				}
-			}
-			dunestream<<" MIN: "<<chimin<<std::endl;
-
-			//Very important, root only likes so many files open.
-			/*
-			   if(chimin > 180 && print){
-			   testGen->compareSBNspecs(test_points.at(which),std::to_string(dcp)+"_comp.root");
-			   TFile *fchi = new TFile("chi.root","recreate");
-			   fchi->cd();
-			   TH2D cc =(TH2D)mychi.getChiogram();
-			   cc.Write();
-			   fchi->Close();
-			   print = false;
-
-			   }
-			 */
-			double vi=0;
-			for(int i=0; i<testGen->num_bins_total_compressed; i++){
-				//for(int j=0; j<testGen->num_bins_total_compressed; j++){
-				//	std::cout<<"CHIOGRAM: "<<i<<" "<<j<<" "<<mychi.lastChi_vec.at(i).at(j)<<std::endl;
-				//double vag = fabs(dcp0.compVec.at(i)-testGen->compVec.at(i))/sqrt(mychi.vMc.at(i).at(i));
-				//std::cout<<"CHIO "<<i<<" "<<dcp0.compVec.at(i)<<" : "<<testGen->compVec.at(i)<<" +/- "<<sqrt(mychi.vMc.at(i).at(i))<<" "<<sqrt(testGen->compVec.at(i))<<"\t\t"<<vag<<std::endl;
-				//vi+= vag;
-
-				//}
-			}	
-			//std::cout<<"Total: "<<vi<<std::endl;
-
-			delete testGen;
-		}
-
-		dunestream.close();
-
-		return 0;
-
-	}else if(which_mode == "mctest"){
-
-		std::vector<double> angles = {33.62, 42.1304, 8.4750, 0,0,0};
-		std::vector<double> angles_oct = {33.62, 49.6, 8.4750, 0,0,0};
-		std::vector<double> phases = {0,0,0};
-		std::vector<double> phases_180 = {180.0,0,0};
-		//http://lbne2-docdb.fnal.gov/cgi-bin/RetrieveFile?docid=10688&filename=DUNE-CDR-physics-volume.pdf&version=10
-		std::vector<double> mass_splittings = {7.5*pow(10,-5), 2.457*pow(10,-3),0};
-		std::vector<double> mass_splittings_inv = {7.5*pow(10,-5), -2.449*pow(10,-3),0};
-
-		TFile *fin = new TFile("/home/mark/work/pheno/DUNE+SBN/covar/covariance_matrices_xcheck_1408x1408.root","read");
-		TMatrixT<double> * m = (TMatrixT<double>*)fin->Get("TMatrixT<double>;1");
-
-
-		genDUNE* truth = new genDUNE(xml);
-		phases.at(0)=10;
-		truth->prob = new SBNprob(4,angles,phases,mass_splittings);
-		truth->preCalculateProbs();		
-		truth->doMC("MC_truth_cv");
-
-		genDUNE* test0 = new genDUNE(xml);
-		phases.at(0)=0;
-		test0->prob = new SBNprob(4,angles,phases,mass_splittings);
-		test0->preCalculateProbs();		
-		test0->doMC("MC_test0_cv");
-
-		genDUNE* test180 = new genDUNE(xml);	
-		phases.at(0)= 180;
-		test180->prob = new SBNprob(4,angles,phases,mass_splittings);
-		test180->preCalculateProbs();		
-		test180->doMC("MC_test180_cv");
-
-
-		SBNchi mychi0(*truth,*m);	
-		SBNchi mychi180(*truth,*m);	
-
-		TFile *fp = new TFile("test.root","recreate");
-		fp->cd();
-		TCanvas *c = new TCanvas("please_work","please_work");
-		c->Divide(2,1);
-
-		TH1D hist_truth_0 = (TH1D) mychi0.toyMC_varyInput(truth, 2000);
-		TH1D hist_truth_180 = (TH1D) mychi180.toyMC_varyInput(truth, 2000);
-
-		TH1D hist_test_0 = (TH1D) mychi0.toyMC_varyInput(test0, 2000);
-		TH1D hist_test_180 = (TH1D) mychi180.toyMC_varyInput(test180, 2000);
-
-		hist_truth_0.Write();	
-		hist_truth_180.Write();	
-		hist_test_0.Write();	
-		hist_test_180.Write();	
-
-
-		c->cd(1);
-		hist_truth_0.SetLineColor(kRed);
-		hist_test_0.SetLineColor(kBlue);
-
-		hist_truth_0.Draw("hist");
-		hist_test_0.Draw("hist same");
-		hist_truth_0.SetMaximum(std::max( hist_truth_0.GetMaximum(), hist_test_0.GetMaximum())*1.1);
-
-
-		c->cd(2);
-		hist_truth_180.SetLineColor(kRed);
-		hist_test_180.SetLineColor(kBlue);
-
-		hist_truth_180.Draw("hist");
-		hist_test_180.Draw("hist same");
-		hist_truth_180.SetMaximum(std::max( hist_truth_180.GetMaximum(), hist_test_180.GetMaximum())*1.1);
-
-
-		c->Write();	
-
-		fp->Close();
-
-
-	}else if(which_mode=="gen"){
-
-		std::vector<double> angles = {33.6, 42.1, 8.5, 0,0,0};
-		std::vector<double> angles_oct = {33.6, 49.6, 8.5, 0,0,0};
-		std::vector<double> phases = {0,0,0};
-		std::vector<double> phases_180 = {180,0,0};
-		//http://lbne2-docdb.fnal.gov/cgi-bin/RetrieveFile?docid=10688&filename=DUNE-CDR-physics-volume.pdf&version=10
-		std::vector<double> mass_splittings = {7.5*pow(10,-5), 2.457*pow(10,-3),0};
-		std::vector<double> mass_splittings_inv = {7.5*pow(10,-5), -2.449*pow(10,-3),0};
-
-
-		TFile *fin = new TFile("/home/mark/work/pheno/DUNE+SBN/covar/covariance_matrices_xcheck_1408x1408.root","read");
-		TMatrixT<double> * m = (TMatrixT<double>*)fin->Get("TMatrixT<double>;1");
-
-		std::vector<std::string> order_names = {"NO","IO"};
-		std::vector<double> order_vals = {2.457*pow(10,-3), -2.449*pow(10,-3)};
-
-		std::vector<double> theta23 = {40,41,42,43,44,45,46,47,48,49,50,51,52};
-		std::vector<double> theta23_NO = {42.1-2,42.1-1, 42.1, 42.1+1,42.1+2};
-		std::vector<double> theta23_IO = {49.6-2,49.6-1, 49.6, 49.6+1,49.6+2};
-
-		for(double dcp = 0; dcp<=360; dcp+=5){
-			for(int ord = 0; ord<2; ord++){
-				for(int i23 =0; i23 < theta23.size(); i23++){
-
-					std::string name = order_names.at(ord)+"_DCP_"+to_string_prec(dcp,3)+"_T23_"+to_string_prec(theta23.at(i23),3);
-					std::cout<<"GEN: on value "<<name<<std::endl;
-
-					genDUNE* testpt = new genDUNE(xml);
-					phases.at(0) = dcp;
-					angles.at(1) = theta23.at(i23);
-					mass_splittings.at(1) = order_vals.at(ord);
-
-					testpt->prob = new SBNprob(4,angles,phases, mass_splittings);
-					testpt->preCalculateProbs();		
-
-					testpt->doMC("precomp/"+name);
-
-					delete testpt;
-				}
-			}	
-		}
-
-	}else if(which_mode =="cpv"){
-		std::ofstream dunestream;
-		dunestream.open ("DUNE_cpv2.dat");
-
-		std::vector<double> angles = {33.6, 42.1, 8.5, 0,0,0};
-		std::vector<double> angles_oct = {33.6, 49.6, 8.5, 0,0,0};
-		std::vector<double> phases = {0,0,0};
-		std::vector<double> phases_180 = {180,0,0};
-		//http://lbne2-docdb.fnal.gov/cgi-bin/RetrieveFile?docid=10688&filename=DUNE-CDR-physics-volume.pdf&version=10
-		std::vector<double> mass_splittings = {7.5*pow(10,-5), 2.457*pow(10,-3),0};
-		std::vector<double> mass_splittings_inv = {7.5*pow(10,-5), -2.449*pow(10,-3),0};
-
-		TFile *fin = new TFile("/home/mark/work/pheno/DUNE+SBN/covar/covariance_matrices_xcheck_1408x1408.root","read");
-		TMatrixT<double> * m = (TMatrixT<double>*)fin->Get("TMatrixT<double>;1");
-
-		std::vector<std::string> order_names = {"NO","IO"};
-		std::vector<double> order_vals = {2.457*pow(10,-3), -2.449*pow(10,-3)};
-
-		std::vector<double> theta23 = {40,41,42,43,44,45,46,47,48,49,50,51,52};
-		std::vector<double> theta23_NO = {42.1-2,42.1-1, 42.1, 42.1+1,42.1+2};
-		std::vector<double> theta23_IO = {49.6-2,49.6-1, 49.6, 49.6+1,49.6+2};
-
-
-		for(double tru_dcp = 0; tru_dcp<=360; tru_dcp+=5){
-
-			std::string truth_name = order_names.at(0)+"_DCP_"+to_string_prec(tru_dcp,3)+"_T23_"+to_string_prec(theta23.at(10),3);
-			//std::string truth_name = order_names.at(1)+"_DCP_"+to_string_prec(tru_dcp,3)+"_T23_"+to_string_prec(theta23.at(8),3);
-			SBNspec * truth = new SBNspec(("precomp/"+truth_name+".SBNspec").c_str(),xml);
-			truth->compressVector();	
-
-			SBNchi mychi(*truth,*m);	
-			std::vector<double> chi_all;
-			std::vector<double> chi_0pi;
-
-			//Here, vary the truth by poissonian_noise and build a distributuon for this. This is p-d/d then
-
-			for(double dcp = 0; dcp<=360; dcp+=5){
-				for(int ord = 0; ord<2; ord++){
-					for(int i23 =0; i23 < theta23.size(); i23++){
-
-						std::string name = order_names.at(ord)+"_DCP_"+to_string_prec(dcp,3)+"_T23_"+to_string_prec(theta23.at(i23),3);
-
-						SBNspec * test = new SBNspec(("precomp/"+name+".SBNspec").c_str(),xml);	
-
-						double chi = mychi.CalcChi(test);
-
-						if(dcp<1 || (dcp < 181 && dcp > 179) ){
-							chi_0pi.push_back(chi);
-						}	
-
-						chi_all.push_back(chi);
-						delete test;
-					}
-				}
-			}	
-
-			double min_chi_all = 1e20; //std::min_element(chi_all.begin(), chi_all.end());	
-			double min_chi_0pi = 1e20; //std::min_element(chi_0pi.begin(), chi_0pi.end());	
-			for(auto &X: chi_all){
-				if( X< min_chi_all) min_chi_all =X;
-			}		
-			for(auto &X: chi_0pi){
-				if( X< min_chi_0pi) min_chi_0pi =X;
-			}		
-
-
-			if(min_chi_all>min_chi_0pi) std::cout<<"ERROR WARBING WARRRRBBBBING! global min is bigger than 0-pi min"<<std::endl;
-
-			dunestream<<"CPV true_dcp "<<tru_dcp<<" "<<min_chi_0pi<<" "<<min_chi_all<<" "<<min_chi_0pi-min_chi_all<<std::endl;
-
-		}
-	}if(which_mode =="detail"){
-		//std::ofstream dunestream;
-		//dunestream.open ("DUNE_cpv_IO.dat");
-
-		std::vector<double> angles = {33.6, 42.1, 8.5, 0,0,0};
-		std::vector<double> angles_oct = {33.6, 49.6, 8.5, 0,0,0};
-		std::vector<double> phases = {0,0,0};
-		std::vector<double> phases_180 = {180,0,0};
-		//http://lbne2-docdb.fnal.gov/cgi-bin/RetrieveFile?docid=10688&filename=DUNE-CDR-physics-volume.pdf&version=10
-		std::vector<double> mass_splittings = {7.5*pow(10,-5), 2.457*pow(10,-3),0};
-		std::vector<double> mass_splittings_inv = {7.5*pow(10,-5), -2.449*pow(10,-3),0};
-
-		TFile *fin = new TFile("/home/mark/work/pheno/DUNE+SBN/covar/covariance_matrices_xcheck_1408x1408.root","read");
-		TMatrixT<double> * m = (TMatrixT<double>*)fin->Get("TMatrixT<double>;1");
-
-		std::vector<std::string> order_names = {"NO","IO"};
-		std::vector<double> order_vals = {2.457*pow(10,-3), -2.449*pow(10,-3)};
-
-		std::vector<double> theta23_NO = {42.1-2,42.1-1, 42.1, 42.1+1,42.1+2};
-		std::vector<double> theta23_IO = {49.6-2,49.6-1, 49.6, 49.6+1,49.6+2};
-
-		std::vector<double> theta23 = {42.1-2,42.1-1, 42.1, 42.1+1,42.1+2,49.6-2,49.6-1, 49.6, 49.6+1,49.6+2};
-
-		//pick one true dcp
-		double tru_dcp = 90;
-
-		std::string truth_name = order_names.at(0)+"_DCP_"+to_string_prec(tru_dcp,3)+"_T23_"+to_string_prec(theta23_NO.at(1),3);
-		SBNspec * truth = new SBNspec(("precomp/"+truth_name+".SBNspec").c_str(),xml);
-		truth->compressVector();	
-
-		SBNchi mychi(*truth,*m);	
-		std::vector<double> chi_all;
-		std::vector<double> chi_0pi;
-
-
-
-		//Here, vary the truth by poissonian_noise and build a distributuon for this. This is p-d/d then
-		std::vector<SBNspec> MCspecs; 
-		TFile *fout= new TFile("DUNE_detail.root","recreate");	
-		fout->cd();
-
-		TH1D hist_truth("MCtruth","MCtruth",100,0,1000);
-		TH1D hist_test0("MCtest0","MCtest0",100,0,1000);
-		TH1D hist_test180("MCtest180","MCtest180",100,0,1000);
-		TH1D hist_test("MCtest","MCtest",100,0,1000);
-
-		int NMC=100;
-
-		std::vector<double> idcp = {0,180};
-
-		for(int i=0; i<=NMC; i++){
-			SBNspec tmp = *truth;
-			tmp.poissonScale(rangen);
-			SBNchi tmpChi(tmp,*m);
-			double thischi = tmpChi.CalcChi(truth);
-			hist_truth.Fill(thischi);
-
-
-			for(int ord = 0; ord<2; ord++){
-				for(int i23 =0; i23 < theta23_NO.size(); i23++){
-					std::vector<double> the;
-					if(ord==0) the=theta23_NO;
-					if(ord==1) the=theta23_IO;
-
-					std::string name0 = order_names.at(ord)+"_DCP_"+to_string_prec(0.0,3)+"_T23_"+to_string_prec(the.at(i23),3);
-					std::string name180 = order_names.at(ord)+"_DCP_"+to_string_prec(180.0,3)+"_T23_"+to_string_prec(the.at(i23),3);
-
-					SBNspec * test0 = new SBNspec(("precomp/"+name0+".SBNspec").c_str(),xml);	
-					SBNspec * test180 = new SBNspec(("precomp/"+name180+".SBNspec").c_str(),xml);	
-
-					double chi0 = tmpChi.CalcChi(test0);
-					double chi180 = tmpChi.CalcChi(test180);
-
-					hist_test0.Fill(chi0);
-					hist_test180.Fill(chi180);
-					hist_test.Fill(std::min(chi0,chi180));
-
-					delete test0;
-					delete test180;
-				}
-			}	
-		}
-
-		fout->cd();
-		hist_truth.Write();
-		hist_test.Write();
-		hist_test0.Write();
-		hist_test180.Write();
-		fout->Close();
-
-
-	}else if(which_mode =="compare"){
-
-
-
-
-		std::vector<double> angles = {33.6, 42.1, 8.5, 0,0,0};
-		std::vector<double> angles_oct = {33.6, 49.6, 8.5, 0,0,0};
-		std::vector<double> phases = {0,0,0};
-		std::vector<double> phases_180 = {180,0,0};
-		std::vector<double> mass_splittings = {7.5*pow(10,-5), 2.457*pow(10,-3),0};
-		std::vector<double> mass_splittings_inv = {7.5*pow(10,-5), -2.449*pow(10,-3),0};
-
-		TFile *fin = new TFile("/home/mark/work/pheno/DUNE+SBN/covar/covariance_matrices_xcheck_1408x1408.root","read");
-		TMatrixT<double> * m = (TMatrixT<double>*)fin->Get("TMatrixT<double>;1");
-
-		std::vector<std::string> order_names = {"NO","IO"};
-		std::vector<double> order_vals = {2.457*pow(10,-3), -2.449*pow(10,-3)};
-
-		std::vector<double> theta23 = {40,41,42,43,44,45,46,47,48,49,50,51,52};
-		std::vector<double> theta23_NO = {42.1-2,42.1-1, 42.1, 42.1+1,42.1+2};
-		std::vector<double> theta23_IO = {49.6-2,49.6-1, 49.6, 49.6+1,49.6+2};
-
-
-		std::string truth_name = order_names.at(0)+"_DCP_"+to_string_prec(0.0,3)+"_T23_"+to_string_prec(theta23.at(1),3);
-		SBNspec * truth = new SBNspec(("precomp/"+truth_name+".SBNspec").c_str(),xml);
-		truth->compressVector();	
-
-
-		truth->writeOut("3p1_cp0.root");
-
-		std::string reco_name = order_names.at(0)+"_DCP_"+to_string_prec(90.0,3)+"_T23_"+to_string_prec(theta23.at(1),3);
-		SBNspec * reco = new SBNspec(("precomp/"+reco_name+".SBNspec").c_str(),xml);
-		reco->compressVector();	
-
-
-
-		//Attempt a sterile oscillation
-		std::vector<double> angles3p1 = {33.6, 41, 8.5, 8.6,9.9,0};
-		std::vector<double> phases3p1 = {0,0,0};
-		std::vector<double> mass_splittings3p1 = {7.5*pow(10,-5), 2.457*pow(10,-3),0.92};
-
-		genDUNE * sterile = new genDUNE(xml);	
-		sterile->prob = new SBNprob(4,angles3p1,phases3p1, mass_splittings3p1);
-		sterile->preCalculateProbs();		
-		sterile->doMC();
-
-		SBNchi mychi(*truth,*m);	
-
-		std::cout<<"Compare Chi: "<<mychi.CalcChi(sterile)<<std::endl;
-		truth->compareSBNspecs(sterile,"DUNE_compare.root");
-
-		//		std::cout<<"Compare Chi: "<<mychi.CalcChi(reco)<<std::endl;
-		//		truth->compareSBNspecs(reco,"DUNE_compare.root");
-
-
-		truth->writeSpec("comp");
-
-		TFile *fchi = new TFile("DUNE_compare.root","update");
-		fchi->cd();
-		TH2D cc =(TH2D)mychi.getChiogram();
-		cc.Write();
-		fchi->Close();
-
-
-
-
-	}else if(which_mode =="scan"){
-		std::ofstream dunestream;
-		dunestream.open ("DUNE_sterilescan.dat");
-
-		TFile *fin = new TFile("/home/mark/work/pheno/DUNE+SBN/covar/covariance_matrices_xcheck_1408x1408.root","read");
-		TMatrixT<double> * m = (TMatrixT<double>*)fin->Get("TMatrixT<double>;1");
-		std::vector<double> angles = {33.6, 42.1, 8.5, 0,0,0};
-		std::vector<double> phases = {0,0,0};
-		std::vector<double> mass_splittings = {7.5*pow(10,-5), 2.457*pow(10,-3),0};
-
+  }
 	
-		std::vector<std::string> order_names = {"NO","IO"};
-		std::vector<double> order_vals = {2.457*pow(10,-3), -2.449*pow(10,-3)};
-		std::vector<double> theta23 = {40,41,42,43,44,45,46,47,48,49,50,51,52};
+  else if(which_mode=="process_gen4"){//yj, attemp precompute 3+1
+        
+        
+        
+    std::string process_line;
+    std::string delimiter = "_";
 
-		std::vector<double> angles3p1 = {33.6, 41, 8.5, 8.6,9.9,0};
-		std::vector<double> phases3p1 = {0,0,0};
-		std::vector<double> mass_splittings3p1 = {7.5*pow(10,-5), 2.457*pow(10,-3),0.92};
+    std::fstream rootlist("/a/data/westside/yjwa/NW/DUNE_SBN_condor/condor_tests/rootlist.txt");
+        
+    std::fstream file("/a/data/westside/yjwa/NW/norwegian_wood/build/src/process_t14_t24_t34_d14.txt");
+    //std::fstream file("/Users/yeon-jaejwa/sandbox/NW/norwegian_wood/build/src/process_t14_t24_t34_d14.txt");
+        
+    //file.seekg(which_process-1);
+        
+        
+    //getline.
+        
+    GotoLine(file,which_process);//310 condor jobs
+        
+        
+        
+        
+        
+    file >> process_line;
+        
+    std::cout << process_line;
+        
+    //std::cin.get();
+        
 
-		genDUNE * sterile = new genDUNE(xml);	
-		sterile->prob = new SBNprob(4,angles3p1,phases3p1, mass_splittings3p1);
-		sterile->preCalculateProbs();		
-		sterile->doMC();
+        
+    std::vector<std::string> lineinfile;
+        
+    size_t pos = 0;
+    std::string sub;
+        
+    std::string precalc_name;
 
-		SBNchi mychi(*sterile,*m);	
-		std::vector<double> chi_all;
+    std::string line;
+        
+    int after_process_num = 0;
+        
+    while( (pos = process_line.find(delimiter)) != std::string::npos) {
+            
+            
+            
+            
+      sub = process_line.substr(0,pos);
+            
+            
 
-		//Here, vary the truth by poissonian_noise and build a distributuon for this. This is p-d/d then
-		double chimin =999;
-		for(double dcp = 0; dcp<=360; dcp+=5){
-			for(int ord = 0; ord<2; ord++){
-				for(int i23 =0; i23 < theta23.size(); i23++){
+      //std::cout << stod(sub) << std::endl;
+      lineinfile.push_back(sub);
+      process_line.erase(0, pos+delimiter.length());
+            
+            
+      if (after_process_num == 0){
+                
+	precalc_name = process_line;
+      }
+      after_process_num++;
+            
+    }
+    lineinfile.push_back(process_line);
+    //std::cout << str << std::endl;
+    //line_count++;
+        
+    bool donejob = false;
 
-					std::string name = order_names.at(ord)+"_DCP_"+to_string_prec(dcp,3)+"_T23_"+to_string_prec(theta23.at(i23),3);
+    while( std::getline (rootlist, line)){
+      if(line.find(precalc_name) != std::string::npos){
 
-					SBNspec * test = new SBNspec(("precomp/"+name+".SBNspec").c_str(),xml);	
+	donejob = true;
+      }
+	    
+    }
 
-					double chi = mychi.CalcChi(test);
+    if (donejob){
+      std::cout << "This is donejob" <<std::endl;
+      exit(0);
+    }
+        
+    for (int i = 0 ; i< lineinfile.size() ; i++){
+        
+      std::cout << "=== " << i << "-th element in process line is "  <<lineinfile.at(i) << std::endl;
+            
+            
+    }
+        
+    std::cout << precalc_name << std::endl;
+        
+    std::vector<double> angles = {33.6, 42.1, 8.5, 0,0,0};//6 mixing angles
+    std::vector<double> angles_oct = {33.6, 49.6, 8.5, 0,0,0};//dif octant
+    std::vector<double> phases = {0,0,0};
+    std::vector<double> phases_180 = {180,0,0};
+    //http://lbne2-docdb.fnal.gov/cgi-bin/RetrieveFile?docid=10688&filename=DUNE-CDR-physics-volume.pdf&version=10
+    std::vector<double> mass_splittings = {7.5*pow(10,-5), 2.457*pow(10,-3),0};
+    std::vector<double> mass_splittings_inv = {7.5*pow(10,-5), -2.449*pow(10,-3),0};
+      
+        
+    TFile *fin = new TFile("/a/data/westside/yjwa/NW/norwegian_wood/covar/covariance_matrices_xcheck_1408x1408.root","read");
+    TMatrixT<double> * m = (TMatrixT<double>*)fin->Get("TMatrixT<double>;1");
+        
+    std::vector<std::string> order_names = {"NO","IO"};
+    std::vector<double> order_vals = {2.457*pow(10,-3), -2.449*pow(10,-3)};
+        
+    //std::vector<double> theta23 = {40,41,42,43,44,45,46,47,48,49,50,51,52};
+    //std::vector<double> theta
+    std::vector<double> theta23 = {38,40,42,44,45,46,47,49,51,53};
+        
+    double t14=10000;
+    double t24=10000;
+    double t34=10000;
+    double d14=10000;
 
-					chi_all.push_back(chi);
-					dunestream<<"STERILESCAN "<<dcp<<" "<<ord<<" "<<theta23.at(i23)<<" "<<chi<<std::endl;
-					if(chi<chimin)chimin=chi;
-					delete test;
-				}
-			}
-		}	
-		dunestream<<"STERILESCAN MIN: "<<chimin<<std::endl;
+    //char * str_t14 = lineinfile.at(2);
 
+    t14 = std::stod(lineinfile.at(2));
+    t24 = std::stod(lineinfile.at(4));
+    t34 = std::stod(lineinfile.at(6));
+    d14 = std::stod(lineinfile.at(8));
+
+
+    for(double dcp = 0; dcp<=360; dcp+=15){//
+      //for (double dcp = 0; dcp<=360; dcp+=180){//yj
+      for(int ord = 0; ord<2; ord++){
+	for(int i23 =0; i23 < theta23.size(); i23++){
+                    
+	  //    for(int i14 =0; i14 < theta14.size(); i14++){
+	  //for(int i24 =0; i24 < theta24.size(); i24++){
+	  //  for(int i34 =0; i34 < theta34.size(); i34++){
+                                
+                                
+	  std::string name = order_names.at(ord)+"_DCP_"+to_string_prec(dcp,3)+"_T23_"+to_string_prec(theta23.at(i23),3)+"_"+precalc_name;
+	  std::cout<<"GEN: on value "<<name<<std::endl;
+                    
+	  genDUNE* testpt = new genDUNE(xml);//yj i was here
+	  phases.at(0) = dcp;
+	  angles.at(1) = theta23.at(i23);
+                                
+	  angles.at(3) = t14;
+	  angles.at(4) = t24;
+	  angles.at(5) = t34;
+
+	  phases.at(1) = d14;
+                                
+	  mass_splittings.at(1) = order_vals.at(ord);
+	  mass_splittings.at(2) = 1.7;
+                    
+	  testpt->prob = new SBNprob(4,angles,phases, mass_splittings);
+	  testpt->preCalculateProbs();
+                    
+	  testpt->doMC(name);
+                    
+	  delete testpt;
 	}
+      }
+    }
+      
+  } 
+    
+    
+  else if(which_mode=="gen"){//yj, precompute 3+0
+
+    std::vector<double> angles = {33.6, 42.1, 8.5, 0,0,0};//6 mixing angles
+    std::vector<double> angles_oct = {33.6, 49.6, 8.5, 0,0,0};//dif octant
+    std::vector<double> phases = {0,0,0};
+    std::vector<double> phases_180 = {180,0,0};
+    //http://lbne2-docdb.fnal.gov/cgi-bin/RetrieveFile?docid=10688&filename=DUNE-CDR-physics-volume.pdf&version=10
+    std::vector<double> mass_splittings = {7.5*pow(10,-5), 2.457*pow(10,-3),0};
+    std::vector<double> mass_splittings_inv = {7.5*pow(10,-5), -2.449*pow(10,-3),0};
+
+
+    TFile *fin = new TFile("/a/data/westside/yjwa/NW/norwegian_wood/covar/covariance_matrices_xcheck_1408x1408.root","read");
+    TMatrixT<double> * m = (TMatrixT<double>*)fin->Get("TMatrixT<double>;1");
+
+    std::vector<std::string> order_names = {"NO","IO"};
+    std::vector<double> order_vals = {2.457*pow(10,-3), -2.449*pow(10,-3)};
+
+    //std::vector<double> theta23 = {40,41,42,43,44,45,46,47,48,49,50,51,52};
+    std::vector<double> theta23 = {38,40,42,44,45,46,47,49,51,53};
+    //std::vector<double> theta23_NO = {42.1-2,42.1-1, 42.1, 42.1+1,42.1+2};
+    //std::vector<double> theta23_IO = {49.6-2,49.6-1, 49.6, 49.6+1,49.6+2};
+
+    for(double dcp = 0; dcp<=360; dcp+=15){//
+      //for (double dcp = 0; dcp<=360; dcp+=180){//yj
+      for(int ord = 0; ord<2; ord++){
+	for(int i23 =0; i23 < theta23.size(); i23++){
+	  //for (int i23=0; i23<1;i23++){//yj
+	  std::string name = order_names.at(ord)+"_DCP_"+to_string_prec(dcp,3)+"_T23_"+to_string_prec(theta23.at(i23),3);
+	  std::cout<<"GEN: on value "<<name<<std::endl;
+
+	  genDUNE* testpt = new genDUNE(xml);
+	  phases.at(0) = dcp;
+	  angles.at(1) = theta23.at(i23);
+	  mass_splittings.at(1) = order_vals.at(ord);
+
+	  testpt->prob = new SBNprob(4,angles,phases, mass_splittings);
+	  testpt->preCalculateProbs();		
+
+	  testpt->doMC("precomp/"+name);
+
+	  delete testpt;
+	}
+      }	
+    }
+
+  }
+    
+  else if(which_mode=="gen4"){//yj, attemp precompute 3+1
+        
+        
+        
+    std::vector<double> angles = {33.6, 42.1, 8.5, 0,0,0};//6 mixing angles
+    std::vector<double> angles_oct = {33.6, 49.6, 8.5, 0,0,0};//dif octant
+    std::vector<double> phases = {0,0,0};
+    std::vector<double> phases_180 = {180,0,0};
+    //http://lbne2-docdb.fnal.gov/cgi-bin/RetrieveFile?docid=10688&filename=DUNE-CDR-physics-volume.pdf&version=10
+    std::vector<double> mass_splittings = {7.5*pow(10,-5), 2.457*pow(10,-3),0};
+    std::vector<double> mass_splittings_inv = {7.5*pow(10,-5), -2.449*pow(10,-3),0};
+        
+        
+    TFile *fin = new TFile("/a/data/westside/yjwa/NW/norwegian_wood/covar/covariance_matrices_xcheck_1408x1408.root","read");
+    TMatrixT<double> * m = (TMatrixT<double>*)fin->Get("TMatrixT<double>;1");
+        
+    std::vector<std::string> order_names = {"NO","IO"};
+    std::vector<double> order_vals = {2.457*pow(10,-3), -2.449*pow(10,-3)};
+        
+    std::vector<double> theta23 = {40,41,42,43,44,45,46,47,48,49,50,51,52};
+    //std::vector<double> theta
+        
+    std::vector<double> theta14 = {0,10};
+    std::vector<double> theta24 = {0,10};
+    std::vector<double> theta34 = {0};//rather coarse for now for the purpose of test.
+        
+    std::vector<double> theta23_NO = {42.1-2,42.1-1, 42.1, 42.1+1,42.1+2};
+    std::vector<double> theta23_IO = {49.6-2,49.6-1, 49.6, 49.6+1,49.6+2};
+        
+    for(double dcp = 0; dcp<=360; dcp+=5){//
+      //for (double dcp = 0; dcp<=360; dcp+=180){//yj
+      for(int ord = 0; ord<2; ord++){
+	for(int i23 =0; i23 < theta23.size(); i23++){
+                    
+	  for(int i14 =0; i14 < theta14.size(); i14++){
+	    for(int i24 =0; i24 < theta24.size(); i24++){
+	      for(int i34 =0; i34 < theta34.size(); i34++){
+                                
+                                
+		std::string name = order_names.at(ord)+"_DCP_"+to_string_prec(dcp,3)+"_T23_"+to_string_prec(theta23.at(i23),3)+"_T14_"+to_string_prec(theta14.at(i14),3)+"_T24_"+to_string_prec(theta24.at(i24),3)+"_T34_"+to_string_prec(theta34.at(i34),3);
+		std::cout<<"GEN: on value "<<name<<std::endl;
+                    
+		genDUNE* testpt = new genDUNE(xml);
+		phases.at(0) = dcp;
+		angles.at(1) = theta23.at(i23);
+                                
+		angles.at(3) = theta14.at(i14);
+		angles.at(4) = theta24.at(i24);
+		angles.at(5) = theta34.at(i34);
+
+                                
+		mass_splittings.at(1) = order_vals.at(ord);
+		mass_splittings.at(2) = 1.;
+                    
+		testpt->prob = new SBNprob(4,angles,phases, mass_splittings);
+		testpt->preCalculateProbs();
+                    
+		testpt->doMC("precomp4/"+name);
+                    
+		delete testpt;
+	      }
+	    }
+	  }
+	}
+      }
+    }
+        
+  }
+    
+    
+  else if(which_mode=="globalfit"){//yj, produce process number and grid point
+        
+    std::ofstream globalfitstream;
+    globalfitstream.open ("process_t14_t24_t34_d14_4ue2um2.txt");//y
+    std::ofstream globaldatstream;
+    globaldatstream.open ("IO_dat_4ue2um2.txt");
+        
+        
+    std::vector<double> angles = {33.6, 42.1, 8.5, 0,0,0};//6 mixing angles
+    std::vector<double> angles_oct = {33.6, 49.6, 8.5, 0,0,0};//dif octant
+    std::vector<double> phases = {0,0,0};
+    std::vector<double> phases_180 = {180,0,0};
+    //http://lbne2-docdb.fnal.gov/cgi-bin/RetrieveFile?docid=10688&filename=DUNE-CDR-physics-volume.pdf&version=10
+    std::vector<double> mass_splittings = {7.5*pow(10,-5), 2.457*pow(10,-3),0};
+    std::vector<double> mass_splittings_inv = {7.5*pow(10,-5), -2.449*pow(10,-3),0};
+        
+        
+    TFile *fin = new TFile("/a/data/westside/yjwa/NW/norwegian_wood/covar/covariance_matrices_xcheck_1408x1408.root","read");
+    TMatrixT<double> * m = (TMatrixT<double>*)fin->Get("TMatrixT<double>;1");
+        
+    std::vector<std::string> order_names = {"NO","IO"};
+    std::vector<double> order_vals = {2.457*pow(10,-3), -2.449*pow(10,-3)};
+        
+    //std::vector<double> theta23 = {40,41,42,43,44,45,46,47,48,49,50,51,52};
+    std::vector<double> theta23 = {38,40,42,44,45,46,47,49,51,53};
+
+    //std::vector<double> theta
+        
+    std::vector<double> theta14 = {5.736, 7.026, 8.316, 10.308, 12.3};
+    std::vector<double> theta24 = {3.654, 5.2695, 6.885, 9.9075, 12.93};
+    std::vector<double> theta34 = {0, 10, 15, 20,25};
+    std::vector<double> delta14 = {0, 45, 90, 135, 180, 225, 270, 315};
+    //std::vector<double> theta23_NO = {42.1-2,42.1-1, 42.1, 42.1+1,42.1+2};
+    //std::vector<double> theta23_IO = {49.6-2,49.6-1, 49.6, 49.6+1,49.6+2};
+        
+    int process_num = 0;
+        
+    for(int i14 =0; i14 < theta14.size(); i14++){
+      for(int i24 =0; i24 < theta24.size(); i24++){
+	for(int i34 =0; i34 < theta34.size(); i34++){
+                    
+	  for (int d14 = 0; d14 < delta14.size(); d14++){
+                        
+	    double sin2theta = 4*std::sin( theta14.at(i14)*3.14159/180. )*std::sin( theta14.at(i14)*3.14159/180. )*std::cos( theta14.at(i14)*3.14159/180. )*std::cos(theta14.at(i14)*3.14159/180.)*std::sin(theta24.at(i24)*3.14159/180.)*std::sin(theta24.at(i24)*3.14159/180.);
+	    std::string name = "_T14_"+to_string_prec(theta14.at(i14),3)+"_T24_"+to_string_prec(theta24.at(i24),3)+"_T34_"+to_string_prec(theta34.at(i34),3)+"_D14_"+to_string_prec(delta14.at(d14))+"_4UE2UM2_"+to_string_prec(sin2theta,6);
+                        
+	    process_num++;
+                        
+	    globalfitstream<<process_num<<name<<std::endl;
+
+	    if(sin2theta<0.002217){
+	      globaldatstream <<"cpv4_IO_T14_"+to_string_prec(theta14.at(i14),3)+"_T24_"+to_string_prec(theta24.at(i24),3)+"_T34_"+to_string_prec(theta34.at(i34),3)+"_D14_"+to_string_prec(delta14.at(d14),6)+".dat"<<std::endl;
+	    }
+	  }
+	}
+      }
+    }
+  }
+    
+  else if(which_mode =="process_cpv4"){
+      
+      std::string process_line;
+      std::string delimiter = "_";
+      
+      std::fstream datlist("/a/data/westside/yjwa/NW/DUNE_SBN_condor/condor_2/datlistIO.txt");
+      
+      std::fstream file("/a/data/westside/yjwa/NW/norwegian_wood/build/src/process_t14_t24_t34_d14.txt");
+      //std::fstream file("/Users/yeon-jaejwa/sandbox/NW/norwegian_wood/build/src/process_t14_t24_t34_d14.txt");
+     
+      //file.seekg(which_process-1);
+      
+      
+      //getline.
+      
+      GotoLine(file,which_process+600);//320+320+90 condor job s 160
+      
+      
+      
+      
+      
+      file >> process_line;
+      
+      std::cout << process_line;
+      
+      //std::cin.get();
+      
+      
+      
+      std::vector<std::string> lineinfile;
+      
+      size_t pos = 0;
+      std::string sub;
+      
+      std::string precalc_name;
+      
+      std::string line;
+      
+      int after_process_num = 0;
+      
+      while( (pos = process_line.find(delimiter)) != std::string::npos) {
+          
+          
+          
+          
+          sub = process_line.substr(0,pos);
+          
+          
+          
+          //std::cout << stod(sub) << std::endl;
+          lineinfile.push_back(sub);
+          process_line.erase(0, pos+delimiter.length());
+          
+          
+          if (after_process_num == 0){
+              
+              precalc_name = process_line;
+          }
+          after_process_num++;
+          
+      }
+      lineinfile.push_back(process_line);
+      //std::cout << str << std::endl;
+      //line_count++;
+      
+      bool donejob = false;
+      
+      while( std::getline (datlist, line)){
+          if(line.find(precalc_name) != std::string::npos){
+              
+	    donejob = true;
+          }
+          
+      }
+      
+      if (donejob){
+          std::cout << "This is donejob" <<std::endl;
+          exit(0);
+      }
+      
+      for (int i = 0 ; i< lineinfile.size() ; i++){
+          
+          std::cout << "=== " << i << "-th element in process line is "  <<lineinfile.at(i) << std::endl;
+          
+          
+      }
+
+      //std::ofstream dunestream;
+      //dunestream.open ("DUNE_cpv3+1to3+0_NO_cpv4_testpoint.dat");
+      
+      std::vector<double> angles = {33.6, 42.1, 8.5, 0,0,0};
+      std::vector<double> angles_oct = {33.6, 49.6, 8.5, 0,0,0};
+      std::vector<double> phases = {0,0,0};
+      std::vector<double> phases_180 = {180,0,0};
+      //http://lbne2-docdb.fnal.gov/cgi-bin/RetrieveFile?docid=10688&filename=DUNE-CDR-physics-volume.pdf&version=10
+      std::vector<double> mass_splittings = {7.5*pow(10,-5), 2.457*pow(10,-3),0};
+      std::vector<double> mass_splittings_inv = {7.5*pow(10,-5), -2.449*pow(10,-3),0};
+      
+      TFile *fin = new TFile("/a/data/westside/yjwa/NW/norwegian_wood/covar/covariance_matrices_xcheck_1408x1408.root","read");
+      TMatrixT<double> * m = (TMatrixT<double>*)fin->Get("TMatrixT<double>;1");
+      
+      std::vector<std::string> order_names = {"NO","IO"};
+      std::vector<double> order_vals = {2.457*pow(10,-3), -2.449*pow(10,-3)};
+      
+      std::vector<double> theta23 = {38,40,42,44,45,46,47,49,51,53};
+      std::vector<double> theta23_NO = {42.1-2,42.1-1, 42.1, 42.1+1,42.1+2};
+      std::vector<double> theta23_IO = {49.6-2,49.6-1, 49.6, 49.6+1,49.6+2};
+      
+      double t14=10000;
+      double t24=10000;
+      double t34=10000;
+      double d14=10000;
+      
+      //char * str_t14 = lineinfile.at(2);
+      
+      t14 = std::stod(lineinfile.at(2));
+      t24 = std::stod(lineinfile.at(4));
+      t34 = std::stod(lineinfile.at(6));
+      d14 = std::stod(lineinfile.at(8));
+
+
+                      
+    std::ofstream dunestream;
+    dunestream.open("cpv4_"+order_names.at(1)+"_T14_"+to_string_prec(t14,3)+"_T24_"+to_string_prec(t24,3)+"_T34_"+to_string_prec(t34,3)+"_D14_"+to_string_prec(d14,6)+".dat");
+    std::cout << "cpv4_"+order_names.at(1)+"_T14_"+to_string_prec(t14,3)+"_T24_"+to_string_prec(t24,3)+"_T34_"+to_string_prec(t34,3)+"_D14_"+to_string_prec(d14,6)+".dat" << std::endl;
+                      
+                      
+    for (double tru_dcp = 0; tru_dcp<360; tru_dcp+=15){
+                          std::string truth_name = order_names.at(1)+"_DCP_"+to_string_prec(tru_dcp,3)+"_T23_"+to_string_prec(theta23.at(3),3)+"_T14_"+to_string_prec(t14,3)+"_T24_"+to_string_prec(t24,3)+"_T34_"+to_string_prec(t34,3)+"_D14_"+to_string_prec(d14,6);
+                          SBNspec * truth = new SBNspec(("/a/data/westside/yjwa/NW/DUNE_SBN_condor/condor_tests/"+truth_name+".SBNspec").c_str(),xml);
+                          //		std::ofstream dunestream;
+                          //dunestream.open("cpv4_"+truth_name+".dat");
+                          truth->compressVector();
+                          SBNchi mychi(*truth,*m);
+                          //Here, vary the truth by poissonian_noise and build a distributuon for this. This is p-d/d then
+                          
+                          std::vector<double> chi_all;
+                          std::vector<double> chi_0pi;
+                          
+                          std::vector<double> chi_all_sub;
+                          std::vector<double> chi_0pi_sub;
+                          
+                          //min of (chi2 at 0 - chi2 at true, chi2 at 180 - chi2 at true)
+                          
+                          
+                          for(double dcp = 0; dcp<=360; dcp+=15){
+                              
+                              //std::cout << "tru dcp : "<<tru_dcp << " , dcp : " << dcp << std::endl;
+                              for(int ord = 0; ord<2; ord++){
+                                  for(int i23 =0; i23 < theta23.size(); i23++){
+                                      
+                                      std::string name = order_names.at(ord)+"_DCP_"+to_string_prec(dcp,3)+"_T23_"+to_string_prec(theta23.at(i23),3);
+                                      
+                                      SBNspec * test = new SBNspec(("/a/data/westside/yjwa/NW/norwegian_wood/build/src/precomp/"+name+".SBNspec").c_str(),xml);
+                                      
+                                      std::string name_sub = order_names.at(ord)+"_DCP_"+to_string_prec(tru_dcp,3)+"_T23_"+to_string_prec(theta23.at(i23),3);
+                                      
+                                      SBNspec * test_sub = new SBNspec(("/a/data/westside/yjwa/NW/norwegian_wood/build/src/precomp/"+name_sub+".SBNspec").c_str(),xml);
+                                      
+                                      
+                                      
+                                      double chi = mychi.CalcChi(test);
+                                      
+                                      
+                                      double chi_sub = mychi.CalcChi(test_sub);
+                                      
+                                      if(dcp<1 || (dcp < 181 && dcp > 179) ){
+                                          chi_0pi.push_back(chi);
+                                          
+                                          chi_0pi_sub.push_back(chi-chi_sub);
+                                          std::cout << "chi_0pi"<< chi << " , chi_0pi-sub : " << chi_sub << std::endl;
+                                      }
+                                      
+                                      chi_all.push_back(chi);
+                                      
+                                      chi_all_sub.push_back(chi-chi_sub);
+                                      
+                                      
+                                      delete test;
+                                      delete test_sub;
+                                  }
+                              }
+                          }
+                          double min_chi_all = 1e20; //std::min_element(chi_all.begin(), chi_all.end());                                                                           
+                          double min_chi_0pi = 1e20; //std::min_element(chi_0pi.begin(), chi_0pi.end());                                                                    
+                          
+                          double min_chi_all_sub = 1e20; //std::min_element(chi_all.begin(), chi_all.end());                                                                
+                          double min_chi_0pi_sub = 1e20; //std::min_element(chi_0pi.begin(), chi_0pi.end());                                                                
+                          
+                          for(auto &X: chi_all){
+                              if( X< min_chi_all) min_chi_all =X;
+                          }
+                          for(auto &X: chi_0pi){
+                              if( X< min_chi_0pi) min_chi_0pi =X;
+                          }
+                          
+                          for(auto &X: chi_all_sub){
+                              if( X< min_chi_all_sub) min_chi_all_sub =X;
+                          }
+                          for(auto &X: chi_0pi_sub){
+                              if( X< min_chi_0pi_sub) min_chi_0pi_sub =X;
+                          }
+                          
+                          
+                          if(min_chi_all>min_chi_0pi) std::cout<<"ERROR WARBING WARRRRBBBBING! global min is bigger than 0-pi min"<<std::endl;
+                          
+                          dunestream<<"CPV true_dcp "<<tru_dcp<<" "<<min_chi_0pi<<" "<<min_chi_all<<" "<<min_chi_0pi-min_chi_all<<" "<< min_chi_0pi_sub<<" "<<min_chi_all_sub <<  std::endl;
+                      }
+                      
+                      //one loop for dcp ends here
+
+      
+  }
+
+
+    
+  else if(which_mode =="cpv4"){
+    //std::ofstream dunestream;
+    //dunestream.open ("DUNE_cpv3+1to3+0_NO_cpv4_testpoint.dat");
+        
+    std::vector<double> angles = {33.6, 42.1, 8.5, 0,0,0};
+    std::vector<double> angles_oct = {33.6, 49.6, 8.5, 0,0,0};
+    std::vector<double> phases = {0,0,0};
+    std::vector<double> phases_180 = {180,0,0};
+    //http://lbne2-docdb.fnal.gov/cgi-bin/RetrieveFile?docid=10688&filename=DUNE-CDR-physics-volume.pdf&version=10
+    std::vector<double> mass_splittings = {7.5*pow(10,-5), 2.457*pow(10,-3),0};
+    std::vector<double> mass_splittings_inv = {7.5*pow(10,-5), -2.449*pow(10,-3),0};
+        
+    TFile *fin = new TFile("/a/data/westside/yjwa/NW/norwegian_wood/covar/covariance_matrices_xcheck_1408x1408.root","read");
+    TMatrixT<double> * m = (TMatrixT<double>*)fin->Get("TMatrixT<double>;1");
+        
+    std::vector<std::string> order_names = {"NO","IO"};
+    std::vector<double> order_vals = {2.457*pow(10,-3), -2.449*pow(10,-3)};
+        
+    std::vector<double> theta23 = {38,40,42,44,45,46,47,49,51,53};
+    std::vector<double> theta23_NO = {42.1-2,42.1-1, 42.1, 42.1+1,42.1+2};
+    std::vector<double> theta23_IO = {49.6-2,49.6-1, 49.6, 49.6+1,49.6+2};
+
+
+    std::vector<double> theta14 = {5.736, 7.026, 8.316, 10.308, 12.3};
+    std::vector<double> theta24 = {3.654, 5.2695, 6.885, 9.9075, 12.93};
+    std::vector<double> theta34 = {0, 10, 15, 20, 25};
+    std::vector<double> delta14 = {0, 45, 90, 135, 180, 225, 270, 315};
+
+    for(double tru_d14 = 0; tru_d14<1; tru_d14++){
+      for (double tru_t14 = 0; tru_t14<1; tru_t14++){
+	for (double tru_t24 = 0; tru_t24<1; tru_t24++){
+	  for (double tru_t34 = 0; tru_t34<1; tru_t34++){
+
+	    std::ofstream dunestream;
+	    dunestream.open("cpv4/cpv4_"+order_names.at(0)+"_T14_"+to_string_prec(theta14.at(tru_t14),3)+"_T24_"+to_string_prec(theta24.at(tru_t24),3)+"_T34_"+to_string_prec(theta34.at(tru_t34),3)+"_D14_"+to_string_prec(delta14.at(tru_d14),6)+".dat");
+
+
+	    for (double tru_dcp = 0; tru_dcp<360; tru_dcp+=15){
+	      std::string truth_name = order_names.at(0)+"_DCP_"+to_string_prec(tru_dcp,3)+"_T23_"+to_string_prec(theta23.at(3),3)+"_T14_"+to_string_prec(theta14.at(tru_t14),3)+"_T24_"+to_string_prec(theta24.at(tru_t24),3)+"_T34_"+to_string_prec(theta34.at(tru_t34),3)+"_D14_"+to_string_prec(delta14.at(tru_d14),6);
+	      SBNspec * truth = new SBNspec(("/a/data/westside/yjwa/NW/DUNE_SBN_condor/condor_tests/"+truth_name+".SBNspec").c_str(),xml);
+	      //		std::ofstream dunestream;
+	      //dunestream.open("cpv4_"+truth_name+".dat");
+	      truth->compressVector();
+	      SBNchi mychi(*truth,*m);
+	      //Here, vary the truth by poissonian_noise and build a distributuon for this. This is p-d/d then
+            
+	      std::vector<double> chi_all;
+	      std::vector<double> chi_0pi;
+
+	      std::vector<double> chi_all_sub;
+	      std::vector<double> chi_0pi_sub;
+
+	      //min of (chi2 at 0 - chi2 at true, chi2 at 180 - chi2 at true)
+
+
+	      for(double dcp = 0; dcp<=360; dcp+=15){
+
+		//std::cout << "tru dcp : "<<tru_dcp << " , dcp : " << dcp << std::endl;  
+		for(int ord = 0; ord<2; ord++){
+		  for(int i23 =0; i23 < theta23.size(); i23++){
+                        
+		    std::string name = order_names.at(ord)+"_DCP_"+to_string_prec(dcp,3)+"_T23_"+to_string_prec(theta23.at(i23),3);
+                        
+		    SBNspec * test = new SBNspec(("precomp/"+name+".SBNspec").c_str(),xml);
+                        
+		    std::string name_sub = order_names.at(ord)+"_DCP_"+to_string_prec(tru_dcp,3)+"_T23_"+to_string_prec(theta23.at(i23),3);
+                        
+		    SBNspec * test_sub = new SBNspec(("precomp/"+name_sub+".SBNspec").c_str(),xml);
+                        
+			
+
+		    double chi = mychi.CalcChi(test);
+                        
+
+		    double chi_sub = mychi.CalcChi(test_sub);
+
+		    if(dcp<1 || (dcp < 181 && dcp > 179) ){
+		      chi_0pi.push_back(chi);
+			
+		      chi_0pi_sub.push_back(chi-chi_sub);
+		      std::cout << "chi_0pi"<< chi << " , chi_0pi-sub : " << chi_sub << std::endl; 
+		    }
+                        
+		    chi_all.push_back(chi);
+
+		    chi_all_sub.push_back(chi-chi_sub);
+
+
+		    delete test;
+		    delete test_sub;
+		  }
+		}
+	      }
+	      double min_chi_all = 1e20; //std::min_element(chi_all.begin(), chi_all.end());                                                                           
+	      double min_chi_0pi = 1e20; //std::min_element(chi_0pi.begin(), chi_0pi.end());                                                                    
+
+	      double min_chi_all_sub = 1e20; //std::min_element(chi_all.begin(), chi_all.end());                                                                
+	      double min_chi_0pi_sub = 1e20; //std::min_element(chi_0pi.begin(), chi_0pi.end());                                                                
+
+	      for(auto &X: chi_all){
+		if( X< min_chi_all) min_chi_all =X;
+	      }
+	      for(auto &X: chi_0pi){
+		if( X< min_chi_0pi) min_chi_0pi =X;
+	      }
+
+	      for(auto &X: chi_all_sub){
+		if( X< min_chi_all_sub) min_chi_all_sub =X;
+	      }
+	      for(auto &X: chi_0pi_sub){
+		if( X< min_chi_0pi) min_chi_0pi_sub =X;
+	      }
+
+
+	      if(min_chi_all>min_chi_0pi) std::cout<<"ERROR WARBING WARRRRBBBBING! global min is bigger than 0-pi min"<<std::endl;
+
+	      dunestream<<"CPV true_dcp "<<tru_dcp<<" "<<min_chi_0pi<<" "<<min_chi_all<<" "<<min_chi_0pi-min_chi_all<<" "<< min_chi_0pi_sub<< std::endl;
+	    }
+	
+	    //one loop for dcp ends here
+	
+	  }
+	}
+      }	
+    }
+	
+       
+            
+  }
+
+
+    
+  else if(which_mode =="cpv4_test"){
+    std::ofstream dunestream;
+    dunestream.open ("DUNE_cpv3+1to3+0_NO_cpv4_testpoint.dat");
+        
+    std::vector<double> angles = {33.6, 42.1, 8.5, 0,0,0};
+    std::vector<double> angles_oct = {33.6, 49.6, 8.5, 0,0,0};
+    std::vector<double> phases = {0,0,0};
+    std::vector<double> phases_180 = {180,0,0};
+    //http://lbne2-docdb.fnal.gov/cgi-bin/RetrieveFile?docid=10688&filename=DUNE-CDR-physics-volume.pdf&version=10
+    std::vector<double> mass_splittings = {7.5*pow(10,-5), 2.457*pow(10,-3),0};
+    std::vector<double> mass_splittings_inv = {7.5*pow(10,-5), -2.449*pow(10,-3),0};
+        
+    TFile *fin = new TFile("/a/data/westside/yjwa/NW/norwegian_wood/covar/covariance_matrices_xcheck_1408x1408.root","read");
+    TMatrixT<double> * m = (TMatrixT<double>*)fin->Get("TMatrixT<double>;1");
+        
+    std::vector<std::string> order_names = {"NO","IO"};
+    std::vector<double> order_vals = {2.457*pow(10,-3), -2.449*pow(10,-3)};
+        
+    std::vector<double> theta23 = {38,40,42,44,45,46,47,49,51,53};
+    std::vector<double> theta23_NO = {42.1-2,42.1-1, 42.1, 42.1+1,42.1+2};
+    std::vector<double> theta23_IO = {49.6-2,49.6-1, 49.6, 49.6+1,49.6+2};
+        
+        
+    std::vector<double> theta14 = {5.736, 7.026, 8.316, 10.308, 12.3};
+    std::vector<double> theta24 = {3.654, 5.2695, 6.885, 9.9075, 12.93};
+    std::vector<double> theta34 = {0, 10, 15, 20, 25};
+    std::vector<double> delta14 = {0, 45, 90, 135, 180, 225, 270, 315};
+ 
+    for(double tru_dcp = 0; tru_dcp<=360; tru_dcp+=15){
+      std::string truth_name = order_names.at(0)+"_DCP_"+to_string_prec(tru_dcp,3)+"_T23_"+to_string_prec(theta23.at(3),3)+"_T14_"+to_string_prec(theta14.at(4),3)+"_T24_"+to_string_prec(theta24.at(0),3)+"_T34_"+to_string_prec(theta34.at(2),3)+"_D14_"+to_string_prec(delta14.at(2),6);
+      SBNspec * truth = new SBNspec(("/a/data/westside/yjwa/NW/DUNE_SBN_condor/condor_tests/"+truth_name+".SBNspec").c_str(),xml);
+            
+      truth->compressVector();
+            
+      SBNchi mychi(*truth,*m);
+      std::vector<double> chi_all;
+      std::vector<double> chi_0pi;
+            
+      std::vector<double> chi_all_sub;
+      std::vector<double> delta_chi_0pi;
+            
+      std::string truth_name_sub = order_names.at(0)+"_DCP_"+to_string_prec(tru_dcp,3)+"_T23_"+to_string_prec(theta23.at(3),3);
+      SBNspec * truth_sub = new SBNspec(("precomp/"+truth_name_sub+".SBNspec").c_str(),xml);
+      truth_sub->compressVector();
+            
+      SBNchi mychi_sub(*truth_sub,*m);
+            
+      double chi_sub = mychi_sub.CalcChi(truth);
+	
+ 
+      for(double dcp = 0; dcp<360; dcp+=180){
+	for(int ord = 0; ord<2; ord++){
+	  //for(int i23 =0; i23 < theta23.size(); i23++){
+                        
+	  std::string name = order_names.at(ord)+"_DCP_"+to_string_prec(dcp,3)+"_T23_"+to_string_prec(theta23.at(3),3);
+                        
+	  SBNspec * test = new SBNspec(("precomp/"+name+".SBNspec").c_str(),xml);
+	  test->compressVector();
+	  SBNchi testchi(*test,*m);
+
+	  double chi = testchi.CalcChi(truth);
+
+	  std::cout<< "truth: "<<truth_name << ", truth3+0: " << truth_name_sub<< ", test: "<<name<<" , chi "<< chi << ", chi4to3 "<< chi_sub << " "<<chi-chi_sub<< std::endl;
+
+        
+	  //double chi_sub = chi - 0;
+                        
+	  if(dcp<1 || (dcp < 181 && dcp > 179) ){
+	    chi_0pi.push_back(chi);
+    
+	  }
+                        
+	  chi_all.push_back(chi);
+
+	  delete test;
+                        
+	  //}
+	}
+      }
+            
+      /*
+	chisq true -> chisq(delta test _ CP ) - chisq()
+      */
+            
+      double min_chi_all = 1e20; //std::min_element(chi_all.begin(), chi_all.end());
+      double min_chi_0pi = 1e20; //std::min_element(chi_0pi.begin(), chi_0pi.end());
+
+      for(auto &X: chi_all){
+	if( X< min_chi_all) min_chi_all =X;
+      }
+      for(auto &X: chi_0pi){
+	if( X< min_chi_0pi) min_chi_0pi =X;
+      }
+
+      dunestream<<"CPV true_dcp "<<tru_dcp<<" "<<min_chi_0pi<<" "<<min_chi_all<<" "<<min_chi_0pi-chi_sub<<" "<< std::endl;
+    }
+  }
+  else if(which_mode =="cpv"){
+    std::ofstream dunestream;
+    dunestream.open ("DUNE_cpv_IO.dat");
+
+    std::vector<double> angles = {33.6, 42.1, 8.5, 0,0,0};
+    std::vector<double> angles_oct = {33.6, 49.6, 8.5, 0,0,0};
+    std::vector<double> phases = {0,0,0};
+    std::vector<double> phases_180 = {180,0,0};
+    //http://lbne2-docdb.fnal.gov/cgi-bin/RetrieveFile?docid=10688&filename=DUNE-CDR-physics-volume.pdf&version=10
+    std::vector<double> mass_splittings = {7.5*pow(10,-5), 2.457*pow(10,-3),0};
+    std::vector<double> mass_splittings_inv = {7.5*pow(10,-5), -2.449*pow(10,-3),0};
+
+    TFile *fin = new TFile("/a/data/westside/yjwa/NW/norwegian_wood/covar/covariance_matrices_xcheck_1408x1408.root","read");
+    TMatrixT<double> * m = (TMatrixT<double>*)fin->Get("TMatrixT<double>;1");
+
+    std::vector<std::string> order_names = {"NO","IO"};
+    std::vector<double> order_vals = {2.457*pow(10,-3), -2.449*pow(10,-3)};
+
+    std::vector<double> theta23 = {38,40,42,44,45,46,47,49,51,53};
+    for(double tru_dcp = 0; tru_dcp<=360; tru_dcp+=15){
+
+      //std::string truth_name = order_names.at(0)+"_DCP_"+to_string_prec(tru_dcp,3)+"_T23_"+to_string_prec(theta23.at(10),3);
+      std::string truth_name = order_names.at(1)+"_DCP_"+to_string_prec(tru_dcp,3)+"_T23_"+to_string_prec(theta23.at(8),3);
+      SBNspec * truth = new SBNspec(("precomp/"+truth_name+".SBNspec").c_str(),xml);
+      truth->compressVector();	
+
+      SBNchi mychi(*truth,*m);	
+      std::vector<double> chi_all;
+      std::vector<double> chi_0pi;
+
+      //Here, vary the truth by poissonian_noise and build a distributuon for this. This is p-d/d then
+
+      for(double dcp = 0; dcp<=360; dcp+=15){
+	for(int ord = 0; ord<2; ord++){
+	  for(int i23 =0; i23 < theta23.size(); i23++){
+
+	    std::string name = order_names.at(ord)+"_DCP_"+to_string_prec(dcp,3)+"_T23_"+to_string_prec(theta23.at(i23),3);
+
+	    SBNspec * test = new SBNspec(("precomp/"+name+".SBNspec").c_str(),xml);	
+
+	    double chi = mychi.CalcChi(test);
+
+	    if(dcp<1 || (dcp < 181 && dcp > 179) ){
+	      chi_0pi.push_back(chi);
+	    }	
+
+	    chi_all.push_back(chi);
+	    delete test;
+	  }
+	}
+      }	
+
+      double min_chi_all = 1e20; //std::min_element(chi_all.begin(), chi_all.end());	
+      double min_chi_0pi = 1e20; //std::min_element(chi_0pi.begin(), chi_0pi.end());	
+      for(auto &X: chi_all){
+	if( X< min_chi_all) min_chi_all =X;
+      }		
+      for(auto &X: chi_0pi){
+	if( X< min_chi_0pi) min_chi_0pi =X;
+      }		
+
+
+      if(min_chi_all>min_chi_0pi) std::cout<<"ERROR WARBING WARRRRBBBBING! global min is bigger than 0-pi min"<<std::endl;
+
+      dunestream<<"CPV true_dcp "<<tru_dcp<<" "<<min_chi_0pi<<" "<<min_chi_all<<" "<<min_chi_0pi-min_chi_all<<std::endl;
+
+    }
+  }
+
 
 
 
 }
-

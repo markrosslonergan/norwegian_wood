@@ -129,12 +129,14 @@ int main(int argc, char* argv[])
 //plot 'DUNE_bi_prob.dat' u 2:3 w l , 'DUNE_bi_prob.dat' u 4:5 w l, 'DUNE_bi_prob.dat' u 6:7 w l, 'DUNE_bi_prob.dat' u 8:9 w l
 	
 	for(double d14 = 0; d14 < 360; d14 +=7.5){
+    
 	for(double dcp = 0; dcp < 360; dcp +=7.5){
 		dunestream<<dcp<<" ";
 		for(int h =0; h<2; h++){
 			for(int o =0; o<2; o++){
 				phases.at(0) = dcp;
 				phases.at(1) = d14;
+
 	
 				std::vector<double>mass;
 				std::vector<double>ang;
@@ -143,9 +145,11 @@ int main(int argc, char* argv[])
 
 				if(o==0)ang=angles;
 				if(o==1)ang=angles_oct;
+                
+                
 
 				SBNprob myprob(4, ang, phases, mass);
-			
+
 				dunestream<<myprob.probabilityMatterExact(1,0,1,3.0,1300)<<" "<<myprob.probabilityMatterExact(1,0,-1,3.0,1300)<<" ";
 				//dunestream<<myprob.probabilityGlobes(1,0,1,3.0,1300);//" "<<myantiprob.probabilityGlobes(1,0,-1,3.0,1300)<<" ";
 

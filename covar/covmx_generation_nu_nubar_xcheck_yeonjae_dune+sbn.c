@@ -5,6 +5,10 @@
 static Int_t dune_nbins_nue = 44;//11
 static Int_t dune_nbins_numu = 44;//19
 
+
+static Int_t sbn_nbins_nue = 11;//11
+static Int_t sbn_nbins_numu = 19;//19
+
 //total 5+3-block histogram length (single detector) is
 // fosc_nue, nue intrinsic, mu misID, tau misID, NC mis ID, instinsic numu, taumisID, NC misID_numu
 // 11, 11, 11, 11, 11, 11, 11, 19, 19 = 115 bins
@@ -36,10 +40,22 @@ static Int_t dune_nbins_numu = 44;//19
 static Int_t dune_nsubchannels_nue = 5;
 static Int_t dune_nsubchannels_numu = 3;
 static Int_t dune_ndetectors = 2;
+
+
+static Int_t sbn_nsubchannels_nue = 7;
+static Int_t sbn_nsubchannels_numu = 2;
+static Int_t sbn_ndetectors = 3;
+
+
 static Int_t nmodes =2;
 
 static Int_t dune_nsingledet = dune_nsubchannels_nue*dune_nbins_nue + dune_nsubchannels_numu*dune_nbins_numu; //only neutrino mode
-static Int_t dune_ntot = dune_ndetectors*(dune_nsubchannels_nue*dune_nbins_nue + dune_nsubchannels_numu*dune_nbins_numu)*nmodes; //three detectors, neutrino and antineutrino mode
+static Int_t dune_ntot = dune_ndetectors*(dune_nsubchannels_nue*dune_nbins_nue + dune_nsubchannels_numu*dune_nbins_numu)*nmodes;
+
+static Int_t sbn_nsingledet = sbn_nsubchannels_nue*sbn_nbins_nue + sbn_nsubchannels_numu*sbn_nbins_numu; //only neutrino mode
+static Int_t dune_ntot = sbn_ndetectors*(sbn_nsubchannels_nue*sbn_nbins_nue + sbn_nsubchannels_numu*sbn_nbins_numu)*nmodes;
+
+//three detectors, neutrino and antineutrino mode
 //cout << "Generating " << ntot << " by " << ntot << " fractional covariance matrix...\n";
 
 static Int_t dune_pos_fosc = 0;
@@ -51,41 +67,55 @@ static Int_t dune_pos_instrinsic_numu = 5;
 static Int_t dune_pos_taumisID_numu = 6;
 static Int_t dune_pos_NCmisID_numu = 7;
 
+
+
+static Int_t sbn_pos_fosc = 0;
+static Int_t sbn_pos_fosc_nubar = 1;
+static Int_t sbn_pos_intrinsic_nue = 2;
+static Int_t sbn_pos_mumisID = 3;
+static Int_t sbn_pos_NCmisID = 4;
+static Int_t sbn_pos_dirt = 5;
+static Int_t sbn_pos_cosm = 6;
+static Int_t sbn_pos_intrinsic_numu = 7;
+static Int_t sbn_pos_NCmisID_numu = 8;
+
+
+
 int size_increment = 1;
 
-static Bool_t is_nue_fosc(Int_t ii){
+static Bool_t dune_is_nue_fosc(Int_t ii){
     return (((ii%dune_nsingledet)>=(dune_pos_fosc*dune_nbins_nue)) && ((ii%dune_nsingledet)<((dune_pos_fosc+size_increment)*dune_nbins_nue)));
 }
 
-static Bool_t is_nue_intrinsic(Int_t ii){
+static Bool_t dune_is_nue_intrinsic(Int_t ii){
     return (((ii%dune_nsingledet)>=(dune_pos_instrinsic_nue*dune_nbins_nue)) && ((ii%dune_nsingledet)<((dune_pos_instrinsic_nue+size_increment)*dune_nbins_nue)));
 }
 
-static Bool_t is_nue_mumisID(Int_t ii){
+static Bool_t dune_is_nue_mumisID(Int_t ii){
     return (((ii%dune_nsingledet)>=(dune_pos_mumisID*dune_nbins_nue)) && ((ii%dune_nsingledet)<((dune_pos_mumisID+size_increment)*dune_nbins_nue)));
 }
 
-static Bool_t is_nue_taumisID(Int_t ii){
+static Bool_t dune_is_nue_taumisID(Int_t ii){
     return (((ii%dune_nsingledet)>=(dune_pos_taumisID*dune_nbins_nue)) && ((ii%dune_nsingledet)<((dune_pos_taumisID+size_increment)*dune_nbins_nue)));
 }
 
-static Bool_t is_nue_NCmisID(Int_t ii){
+static Bool_t dune_is_nue_NCmisID(Int_t ii){
     return (((ii%dune_nsingledet)>=(dune_pos_NCmisID*dune_nbins_nue)) && ((ii%dune_nsingledet)<((dune_pos_NCmisID+size_increment)*dune_nbins_nue)));
 }
 
-static Bool_t is_numu_instrinsic(Int_t ii){
+static Bool_t dune_is_numu_instrinsic(Int_t ii){
     return (((ii%dune_nsingledet)>=(dune_nsubchannels_nue*dune_nbins_nue+(dune_pos_instrinsic_numu-dune_nsubchannels_nue)*dune_nbins_numu )) && ((ii%dune_nsingledet)<((dune_nsubchannels_nue*dune_nbins_nue+(dune_pos_instrinsic_numu-dune_nsubchannels_nue+size_increment)*dune_nbins_numu ))) );
 }
 
-static Bool_t is_numu_taumisID(Int_t ii){
+static Bool_t dune_is_numu_taumisID(Int_t ii){
     return (((ii%dune_nsingledet)>=(dune_nsubchannels_nue*dune_nbins_nue+(dune_pos_taumisID_numu-dune_nsubchannels_nue)*dune_nbins_numu )) && ((ii%dune_nsingledet)<((dune_nsubchannels_nue*dune_nbins_nue+(dune_pos_taumisID_numu-dune_nsubchannels_nue+size_increment)*dune_nbins_numu ))) );
 }
 
-static Bool_t is_numu_NCmisID(Int_t ii){
+static Bool_t dune_is_numu_NCmisID(Int_t ii){
     return (((ii%dune_nsingledet)>=(dune_nsubchannels_nue*dune_nbins_nue+(dune_pos_NCmisID_numu-dune_nsubchannels_nue)*dune_nbins_numu )) && ((ii%dune_nsingledet)<((dune_nsubchannels_nue*dune_nbins_nue+(dune_pos_NCmisID_numu-dune_nsubchannels_nue+size_increment)*dune_nbins_numu ))) );
 }
 
-static Bool_t is_antineutrino(Int_t ii){
+static Bool_t dune_is_antineutrino(Int_t ii){
 	return (ii%dune_nbins_nue>21);
 }
 

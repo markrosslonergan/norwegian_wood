@@ -15,10 +15,10 @@ int genDUNE::fillHistograms(int file, int uni, double wei){
 	//	nu_dune_mulike_taumisid;16	nu_dune_mulike_taumisid
 	//	nu_dune_mulike_ncmisid;16	nu_dune_mulike_ncmisid
 
-	double Enu_true = *vmapD[file]["Etrue"];
+	double Enu_true = *vmapD[file]["Etrue"];//yj vampD: vector of maps string::Double*
 	double Enu_reco =  *vmapD[file]["Ereco"];
 	double weight = *vmapD[file]["Weight"];
-	int nutype = *vmapI[file]["NuType"];
+	int nutype = *vmapI[file]["NuType"];//yj vmapI: vector of maps string::Int*
 
 	//write a map for osc patterns 
 
@@ -29,7 +29,7 @@ int genDUNE::fillHistograms(int file, int uni, double wei){
 
 	//FILE is for input file, nothing to do with the order of fullnames. remember that dammin. the oscillation patterns must be matched with multisim_name(file) maps!
 	std::pair<int,int> oscillation_pattern = osc_pattern_map.at(multisim_name.at(file));
-
+    //yj what is std::pair? just two inputs.
 
 	if(oscillation_pattern.first != 0 && oscillation_pattern.second != 0){
 		//std::cout<<oscillation_patterns.at(file).first<<" "<<oscillation_patterns.at(file).second<<std::endl;	
@@ -84,8 +84,8 @@ double genDUNE::interpolate_prob_far(int a, int b, double enu){
 
 
 
-double genDUNE::interpolate_prob_near(int a, int b, double enu){
-	int rnd = std::floor(enu/0.01);
+double genDUNE::interpolate_prob_near(int a, int b, double enu){//yj
+	int rnd = std::floor(enu/0.01); //energy step is 0.01
 	double p1,p2;
 
 	if(a<0 && b < 0){
@@ -111,6 +111,8 @@ double genDUNE::lin_interp(double ein, double p1, double e1, double p2, double e
 
 int genDUNE::preCalculateProbs(){
 
+    
+    //yj i,j, are the number of flavors.
 	std::cout<<"Starting precalculating probs"<<std::endl;
 	for(int i = 0; i < 4; i++){
 		std::vector<std::vector<double>> tmp_near;
@@ -121,8 +123,8 @@ int genDUNE::preCalculateProbs(){
 			std::vector<double> tmpen_far;
 
 			for(double en = 0.001; en < 50; en+= 0.01){
-				tmpen_far.push_back(prob->probabilityMatterExact(i,j,1,en,1300));
-				tmpen_near.push_back(prob->probabilityVacuumExact(i,j,1,en,1.0));
+				tmpen_far.push_back(prob->probabilityMatterExact(i,j,1,en,1300));//prob?
+				tmpen_near.push_back(prob->probabilityVacuumExact(i,j,1,en,1.0));//yj near detector is too far. .525 km?
 			}
 
 			tmp_near.push_back(tmpen_near);
@@ -148,7 +150,8 @@ int genDUNE::preCalculateProbs(){
 
 			for(double en = 0.001; en < 50; en+= 0.01){
 				tmpen_farbar.push_back(prob->probabilityMatterExact(i,j,-1,en,1300));
-				tmpen_nearbar.push_back(prob->probabilityVacuumExact(i,j,-1,en,1.0));
+                tmpen_nearbar.push_back(prob->probabilityVacuumExact(i,j,-1,en,1.0));//yj near detector is too far. .525 km?
+
 			}
 
 			tmp_nearbar.push_back(tmpen_nearbar);
