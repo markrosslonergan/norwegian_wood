@@ -140,7 +140,7 @@ int main(int argc, char* argv[])
 		bkg_only.preCalculateProbs();
 
 		bkg_only.doMC("three_neutrino");
-		bkg_only.writeOut("three_neutrino.root");
+		bkg_only.writeOut("three_neutrino_"+std::to_string(rangen->Uniform(1000))+".root");
 
 		return 0;
 
@@ -494,8 +494,8 @@ int main(int argc, char* argv[])
 		std::vector<double> mass_splittings_inv = {7.5*pow(10,-5), -2.449*pow(10,-3),0};
 
 
-		TFile *fin = new TFile("/home/mark/work/pheno/DUNE+SBN/covar/covariance_matrices_xcheck_1408x1408.root","read");
-		TMatrixT<double> * m = (TMatrixT<double>*)fin->Get("TMatrixT<double>;1");
+		//TFile *fin = new TFile("/home/mark/work/pheno/DUNE+SBN/covar/covariance_matrices_xcheck_1408x1408.root","read");
+		//TMatrixT<double> * m = (TMatrixT<double>*)fin->Get("TMatrixT<double>;1");
 
 		std::vector<std::string> order_names = {"NO","IO"};
 		std::vector<double> order_vals = {2.457*pow(10,-3), -2.449*pow(10,-3)};
@@ -504,7 +504,7 @@ int main(int argc, char* argv[])
 		std::vector<double> theta23_NO = {42.1-2,42.1-1, 42.1, 42.1+1,42.1+2};
 		std::vector<double> theta23_IO = {49.6-2,49.6-1, 49.6, 49.6+1,49.6+2};
 
-		for(double dcp = 0; dcp<=360; dcp+=5){
+		for(double dcp = 0; dcp<=360; dcp+=10){
 			for(int ord = 0; ord<2; ord++){
 				for(int i23 =0; i23 < theta23.size(); i23++){
 
