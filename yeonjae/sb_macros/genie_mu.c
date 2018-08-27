@@ -664,7 +664,7 @@ void genie_mu(gst_file * file){
 
 
 			//Nrevertex. for stats.
-			int Nrevertex = 10;
+			int Nrevertex = 1;
 			for(int k=0;k<Nrevertex; k++){
 
 				double vertex_weight = 1.0/((double) Nrevertex);

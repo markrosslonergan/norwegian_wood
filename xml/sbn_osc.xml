@@ -2,7 +2,9 @@
 
 
 <mode name="nu" use="1"/>
-<mode name="nubar" use="0"/>
+<mode name="nubar" use="1"/>
+
+<!-- //yj use="0" to use="1" -->
 
 <detector name="SBND" use="1" />
 <detector name="uBooNE" use="1" />
@@ -30,4 +32,6 @@
 </channel>
 
 <covariance file="covar/SBN_covariance_matrices_xcheck_690x690.root" name="TMatrixT<double>;7" />
-<data path="/home/mark/work/SBNfit/whipping_star/data/" />
+<!-- <data path="/home/mark/work/SBNfit/whipping_star/data/" /> -->
+<data path="/a/data/westside/yjwa/NW/whipping_star/data/" />
+

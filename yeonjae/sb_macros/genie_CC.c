@@ -340,7 +340,7 @@ void genie_study(gst_file * file){
 
 
 		//Nrevertex. for stats.
-		int Nrevertex = 10;
+		int Nrevertex = 1;
 		for(int k=0;k<Nrevertex; k++){
 
 			double vertex_weight = 1.0/((double) Nrevertex);
@@ -1187,7 +1187,7 @@ void genie_CC_slimmed(){
 
 
 		//Nrevertex. for stats.
-		int Nrevertex = 10;
+		int Nrevertex = 1;
 		for(int k=0;k<Nrevertex; k++){
 
 			double vertex_weight = 1.0/((double) Nrevertex);
@@ -2122,7 +2122,7 @@ void genie_CC(){
 
 
 		//Nrevertex. for stats.
-		int Nrevertex = 10;
+		int Nrevertex = 1;
 		for(int k=0;k<Nrevertex; k++){
 
 			double vertex_weight = 1.0/((double) Nrevertex);
@@ -3141,7 +3141,7 @@ void genie_NC(gst_file * file){
 
 
 			//Nrevertex. for stats.
-			int Nrevertex = 10;
+			int Nrevertex = 1;
 			for(int k=0;k<Nrevertex; k++){
 
 				double vertex_weight = 1.0/((double) Nrevertex);
@@ -3384,7 +3384,6 @@ void genie_NC(gst_file * file){
 
 
 	}
-
 
 
 	void run_all_genie_study(){

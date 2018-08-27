@@ -132,7 +132,7 @@ int main(int argc, char* argv[])
 	std::vector<double> mass_splittings = {7.5*pow(10,-5), 2.457*pow(10,-3), 1.0};
 	std::vector<double> mass_splittings_inv = {7.5*pow(10,-5), -2.449*pow(10,-3), 1.00};
 
-	std::vector<double> theta23 = {40,41,42,43,44,45,46,47,48,49,50,51,52};
+	std::vector<double> theta23 = {38,40,42,44,45,46,47,49,51,53};
 	std::vector<std::string> order_names = {"NO","IO"};
 	std::vector<double> order_vals = {2.457*pow(10,-3), -2.449*pow(10,-3)};
     
@@ -141,13 +141,13 @@ int main(int argc, char* argv[])
     
     
     //will read txt file and um...yeah...
-    std::ifstream in("/Users/yeon-jaejwa/sandbox/NW/norwegian_wood/99CL.txt");
+    std::ifstream in("/a/data/westside/yjwa/NW/norwegian_wood/build/src/process_t14_t24_t34_d14.txt");
     
     std::string str;
-    std::string delimiter = " ";
+    std::string delimiter = "_";
     
     std::ofstream paramchistream;
-    paramchistream.open ("ue4_um4_m41_sbnchi_99.dat");//yj
+    paramchistream.open ("test.txt");//yj
 
     
     TFile *fcov_dune_in = new TFile("../../covar/covariance_matrices_xcheck_1408x1408.root","read");
@@ -156,16 +156,28 @@ int main(int argc, char* argv[])
     TMatrixT<double> * frac_covar_DUNE = (TMatrixT<double>*)fcov_dune_in->Get("TMatrixT<double>;1");
     TMatrixT<double> * frac_covar_SBN = (TMatrixT<double>*)fcov_sbn_in->Get("TMatrixT<double>;7");
     
-    std::string whipping_star_location = "/Users/yeon-jaejwa/sandbox/ws/whipping_star/";//yj
+    std::string whipping_star_location = "/a/data/westside/yjwa/NW/whipping_star/";//yj
     
-    SBNspec* sbn_bkg_spec = new SBNspec((whipping_star_location+"data/precomp/SBN_bkg_all").c_str(), sbn_xml);
+    //SBNspec* sbn_bkg_spec = new SBNspec((whipping_star_location+"data/precomp/SBN_bkg_all").c_str(), sbn_xml);
     //std::cout << "Combined fit :: lodaing SBN bkg ...  " << dune_bkg_name << std::endl;
+    //sbn_bkg_spec->compressVector();
+    
+    
+    //neutrinoModel bkgModel(0.1,0.0,0.0);//not really sure if this returns 3+0 osc.
+
+    
+    SBNosc * sbn_bkg_spec = new SBNosc((whipping_star_location+"data/precomp/SBN_bkg_all").c_str(),sbn_xml);
+    sbn_bkg_spec->setBothMode();
     sbn_bkg_spec->compressVector();
+    //sbn_bkg_spec->load_model(bkgModel);
+    //sbn_bkg_spec->OscillateThis();
+    //sbn_bkg_spec->compressVector();
     
     
 
     int line_count = 0;
     while (std::getline(in, str)) {
+      std::cout << " this shoud be working " << std::endl;
         // output the line
         //std::cout << str << std::endl;
         
@@ -174,64 +186,87 @@ int main(int argc, char* argv[])
         
         int which_param = 0;
         
-        std::vector<double> lineinfile;
-        
+        std::vector<std::string> lineinfile;
+	int after_process_num = 0;        
+	std::string precalc_name;
         while( (pos = str.find(delimiter)) != std::string::npos) {
             
             sub = str.substr(0,pos);
             
             
-            //std::cout << stod(sub) << std::endl;
-            lineinfile.push_back(stod(sub));
+            //std::cout << sub << std::endl;
+            lineinfile.push_back(sub);
             str.erase(0, pos+delimiter.length());
-            
+            if (after_process_num == 0){
+                
+	      precalc_name = str;
+	    }
+	    after_process_num++;
+
         }
-        lineinfile.push_back(stod(str));
+        lineinfile.push_back(str);
         //std::cout << str << std::endl;
         line_count++;
         
         
-        std::cout << lineinfile.at(0) << " " << lineinfile.at(1) << " " << lineinfile.at(2) << std::endl;
-        if (lineinfile.at(2) > 2.00) {
-            std::cout << "This mass " <<  lineinfile.at(2) << " is out of bound, want to skip the evts" << std::endl;
-            continue;
-        }
+        //std::cout << lineinfile.at(0) << " " << lineinfile.at(1) << " " << lineinfile.at(2) << std::endl;
+        //if (lineinfile.at(2) > 2.00) {
+	//  std::cout << "This mass " <<  lineinfile.at(2) << " is out of bound, want to skip the evts" << std::endl;
+	//  continue;
+        //}
         /*
          std::vector<double> test_sterile_angles = element_convert_to_params (lineinfile.at(0), lineinfile.at(1), 0, 0, 0, want_simple);
         
         //std::cout << "t14 : " << test_sterile_angles.at(0) << " , t24: " << test_sterile_angles.at(1) << " , t34: " << test_sterile_angles.at(2) <<std::endl;
         angles.at(3) = test_sterile_angles.at(0);
         */
-        neutrinoModel signalModel(lineinfile.at(2), lineinfile.at(0), lineinfile.at(1));
+	double t14;
+	double t24;
+
+	t14 = std::stod(lineinfile.at(2));
+	t24 = std::stod(lineinfile.at(4));
+
+	//std::cout << "trying to call signal model:" << std::endl;
+
+        neutrinoModel signalModel(1.7, std::sin(t14*3.14159/180.), std::cos(t14*3.14159/180.)*std::sin(t24*3.14159/180.));//m4, ue4. um4
+        
+	//std::cout << "called signal model : " << std::endl;
         
         
         
         //Now create a oscillation spectra, constructed the same.
         SBNosc * sbn_sig_spec = new SBNosc((whipping_star_location+"data/precomp/SBN_bkg_all").c_str(),sbn_xml);
+
+	//std::cout << " this shoud be working ... " << std::endl;
         sbn_sig_spec->compressVector();
+
+	//std::cout << " this shoud be working .... " << std::endl;
         sbn_sig_spec->load_model(signalModel);
+	//std::cout << " this shoud be working ..... " << std::endl;
         sbn_sig_spec->OscillateThis();
+	//std::cout << " this shoud be working ...... " << std::endl;
         sbn_sig_spec->compressVector();
+	//std::cout << " this shoud be working ....... " << std::endl;
         
         
         
         
         //	SBNchi dune_chi(*dune_bkg_spec, *frac_covar_DUNE);
         SBNchi sbn_chi(*sbn_bkg_spec, *frac_covar_SBN);
-        
+	//std::cout << " this shoud be working ........ " << std::endl;
         //	double ans_dune = dune_chi.CalcChi(dune_sig_spec);
         double ans_sbn = sbn_chi.CalcChi(sbn_sig_spec);
-        
+	//std::cout << " this shoud be working ......... " << std::endl;
         //std::cout<<ans_dune<<" "<<ans_sbn<<" "<<ans_dune+ans_sbn<<std::endl;
         
         //std::cout<<ans_sbn<<std::endl;
         
-        paramchistream<<lineinfile.at(0)<<" "<<lineinfile.at(1)<<" "<<lineinfile.at(2)<<" "<<ans_sbn<<std::endl;
-        
+	paramchistream<<precalc_name<<"_SBN_"<<ans_sbn<<std::endl;
+	std::cout << precalc_name << "_SBN_" << ans_sbn << std::endl;
 
 
         
-        
+	//	std::cout << " this shoud be working .......... " << std::endl;
         
         
     }
