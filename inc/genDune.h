@@ -72,6 +72,16 @@ class genDUNE : public sbn::SBgeN {
 
 
 			this->getOscPattern();
+			
+			for(int i=0; i< Nfiles; i++){
+				std::string nam = multisim_name.at(i);
+				osc_pattern_vec.push_back(osc_pattern_map.at(nam));
+				map_hist_vec.push_back( map_hist[nam]);
+				map_hist_vec_near.push_back( map_hist[near_detector_name_map.at(nam)]);
+			}
+			
+
+
             
             if(debug) std::cout<<"Searching for memory leak 4"<<std::endl;
 
@@ -88,6 +98,7 @@ class genDUNE : public sbn::SBgeN {
 		}
 
 		std::map<std::string, std::pair<int,int>> osc_pattern_map;
+		std::vector<std::pair<int,int>> osc_pattern_vec;
 
 		std::vector<std::vector<std::vector<double>>> precalc_prob_farbar;
 		std::vector<std::vector<std::vector<double>>> precalc_prob_nearbar;
@@ -105,6 +116,10 @@ class genDUNE : public sbn::SBgeN {
 
 		std::map<std::string, std::string> near_detector_name_map;
 		std::map<std::string, int> near_map_hist;
+
+		std::vector<int> map_hist_vec;
+		std::vector<int> map_hist_vec_near;
+
 
 		std::vector<std::string> near_detector_names;
 		std::vector<std::pair<int,int>> oscillation_patterns;

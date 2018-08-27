@@ -26,16 +26,20 @@ int genDUNE::fillHistograms(int file, int uni, double wei){
 	double oscprob_near =1.0; 
 
 
-
 	//FILE is for input file, nothing to do with the order of fullnames. remember that dammin. the oscillation patterns must be matched with multisim_name(file) maps!
-	std::pair<int,int> oscillation_pattern = osc_pattern_map.at(multisim_name.at(file));
+
+	//Map lookup of strings is slow
+	//std::pair<int,int> oscillation_pattern = osc_pattern_map.at(multisim_name.at(file));
+	std::pair<int,int> * oscillation_pattern = &osc_pattern_vec.at(file);  
+	
+	
 	//yj what is std::pair? just two inputs.
 
-	if(oscillation_pattern.first != 0 && oscillation_pattern.second != 0){
+	if(oscillation_pattern->first != 0 && oscillation_pattern->second != 0){
 		//std::cout<<oscillation_patterns.at(file).first<<" "<<oscillation_patterns.at(file).second<<std::endl;	
 
-		oscprob_far = interpolate_prob_far(oscillation_pattern.first, oscillation_pattern.second, Enu_true);
-		oscprob_near = interpolate_prob_near(oscillation_pattern.first, oscillation_pattern.second, Enu_true);
+		oscprob_far = interpolate_prob_far(oscillation_pattern->first, oscillation_pattern->second, Enu_true);
+		oscprob_near = interpolate_prob_near(oscillation_pattern->first, oscillation_pattern->second, Enu_true);
 		//std::cout<<"INV: "<<oscillation_pattern.first<<" "<<oscillation_pattern.second<<" "<<multisim_name.at(file)<<std::endl;
 
 		//if(oscillation_patterns.at(file).first != oscillation_patterns.at(file).second){
@@ -50,8 +54,14 @@ int genDUNE::fillHistograms(int file, int uni, double wei){
 	//std::cout<<Enu_true<<" "<<Enu_reco<<" on file: "<<multisim_name.at(file)<<" "<<nutype<<" PROB: "<<oscprob_far<<std::endl;
 	//std::cout<<"Map Hist: "<<map_hist[multisim_name.at(file)]<<std::endl;
 
-	hist.at(map_hist[multisim_name.at(file)]).Fill(Enu_reco, oscprob_far*weight*far_detector_weight);
-	hist.at(map_hist[near_detector_name_map.at(multisim_name.at(file))]).Fill(Enu_reco, oscprob_near*weight*near_detector_weight);
+	int m1 = map_hist_vec.at(file);
+	int m2 = map_hist_vec_near.at(file);
+
+	hist.at(m1).Fill(Enu_reco, oscprob_far*weight*far_detector_weight);
+	hist.at(m2).Fill(Enu_reco, oscprob_near*weight*near_detector_weight);
+
+//	hist.at(map_hist[multisim_name.at(file)]).Fill(Enu_reco, oscprob_far*weight*far_detector_weight);
+//	hist.at(map_hist[near_detector_name_map.at(multisim_name.at(file))]).Fill(Enu_reco, oscprob_near*weight*near_detector_weight);
 
 	return 0;
 }
