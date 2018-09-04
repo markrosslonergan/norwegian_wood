@@ -340,7 +340,7 @@ void genie_study(gst_file * file){
 
 
 		//Nrevertex. for stats.
-		int Nrevertex = 10;
+		int Nrevertex = 1;
 		for(int k=0;k<Nrevertex; k++){
 
 			double vertex_weight = 1.0/((double) Nrevertex);
@@ -1187,7 +1187,7 @@ void genie_CC_slimmed(){
 
 
 		//Nrevertex. for stats.
-		int Nrevertex = 10;
+		int Nrevertex = 1;
 		for(int k=0;k<Nrevertex; k++){
 
 			double vertex_weight = 1.0/((double) Nrevertex);
@@ -2122,7 +2122,7 @@ void genie_CC(){
 
 
 		//Nrevertex. for stats.
-		int Nrevertex = 10;
+		int Nrevertex = 1;
 		for(int k=0;k<Nrevertex; k++){
 
 			double vertex_weight = 1.0/((double) Nrevertex);
@@ -3141,7 +3141,7 @@ void genie_NC(gst_file * file){
 
 
 			//Nrevertex. for stats.
-			int Nrevertex = 10;
+			int Nrevertex = 1;
 			for(int k=0;k<Nrevertex; k++){
 
 				double vertex_weight = 1.0/((double) Nrevertex);
@@ -3449,15 +3449,98 @@ void genie_NC(gst_file * file){
 			genie_study(f);
 			genie_NC(f);
 		}
+	}		
+
+	void run_all_genie_study_ND(){
+		int FHC = 0;
+		int RHC = 1;
 		
+		int NU = 0;
+		int NUBAR = 1;
 
+		float mu_mu_fhc_sf = 1.10634*10*50/1500.;
+		float mubar_mubar_fhc_sf = 0.181760*10*10/100.;
+		float mubar_taubar_fhc_sf = 0.090880*10*20/10.;
+		float mu_tau_fhc_sf =2.76584*10*20/100.;
+		float e_e_fhc_sf = 0.0323551*10*20/50.;
+		float ebar_ebar_fhc_sf = 0.00404113*10*20/10.;
+		float mu_e_fhc_sf =1.10634*10*50/160.;
+		float mubar_ebar_fhc_sf = 0.181760*10*10/10.;
+		//Neutrino Mode
+		gst_file* FHC_numu = new gst_file( "gntp.0.FHC_ND_numuflux_numubeam1p5M_gst",FHC,NU,mu_mu_fhc_sf); //
+		gst_file* FHC_numubar= new gst_file( "gntp.0.FHC_ND_numubarflux_numubarbeam100k_gst",FHC,NUBAR,mubar_mubar_fhc_sf);//
+		gst_file* FHC_nutaubar= new gst_file( "gntp.0.FHC_ND_numubarflux_nutaubarbeam10k_gst",FHC,NUBAR,mubar_taubar_fhc_sf);//
+		gst_file* FHC_nutau= new gst_file( "gntp.0.FHC_ND_numuflux_nutaubeam100k_gst",FHC,NU,mu_tau_fhc_sf); //
+		gst_file* FHC_nue = new gst_file( "gntp.0.FHC_ND_nueflux_nuebeam50k_gst",FHC,NU,e_e_fhc_sf); //
+		gst_file* FHC_nuebar= new gst_file( "gntp.0.FHC_ND_nuebarflux_nuebarbeam10k_gst",FHC,NUBAR,ebar_ebar_fhc_sf);//
+		gst_file* FHC_numu_nuebeam= new gst_file( "gntp.0.FHC_ND_numuflux_nuebeam160k_gst",FHC,NU,mu_e_fhc_sf); //
+		gst_file* FHC_numubar_nuebarbeam= new gst_file( "gntp.0.FHC_ND_numubarflux_nuebarbeam10k_gst",FHC,NUBAR,mubar_ebar_fhc_sf);//
 
+		// Sets the histograms that each stage of genie_study goes to we have intrinsic/fullosc, muonmisid, taumisid
+		// leave as empty string if nothing goes there for that sample
+		// constructs using 
+		FHC_numu->setHistLocations({"","elike_mumisid","","elike_ncmisid"});
+		FHC_numubar->setHistLocations({"","elike_antimumisid","","elike_antincmisid"});
+		FHC_nutau->setHistLocations({"","","elike_taumisid",""});
+		FHC_nutaubar->setHistLocations({"","","elike_antitaumisid",""});
+		FHC_nue->setHistLocations({"elike_intrinsic","","",""});
+		FHC_nuebar->setHistLocations({"elike_antiintrinsic","","",""});
+		FHC_numu_nuebeam->setHistLocations({"elike_fullosc","","",""});
+		FHC_numubar_nuebarbeam->setHistLocations({"elike_antifullosc","","",""});
+
+		std::vector<gst_file*> FHC_files = {FHC_numu, FHC_numubar, FHC_nutau, FHC_nutaubar, FHC_nue, FHC_nuebar, FHC_numu_nuebeam, FHC_numubar_nuebarbeam};
+		
+		
+		
+		float mubar_taubar_rhc_sf = 0.989670*10*20/30.;
+		float mu_tau_rhc_sf = 0.512185*10*10/10.;
+		float e_e_rhc_sf = 0.0215185*10*10/15.;
+		float ebar_ebar_rhc_sf = 0.0213827*10*10/15.;
+		float mu_mu_rhc_sf = 0.256093*10*20/250.;
+		float mubar_mubar_rhc_sf = 0.395868*10*50/1000.;
+		float mu_e_rhc_sf = 0.512185*10*10/10.;
+		float mubar_ebar_rhc_sf = 0.989670*10*20/30.;
+
+		 
+
+		//Anti_neutrino Mode
+		gst_file* RHC_nutaubar= new gst_file( "gntp.0.RHC_ND_numubarflux_nutaubarbeam30k_gst",RHC,NUBAR,mubar_taubar_rhc_sf);//
+		gst_file* RHC_nutau= new gst_file( "gntp.0.RHC_ND_numuflux_nutaubeam10k_gst",RHC,NU, mu_tau_rhc_sf);//
+		gst_file* RHC_nue = new gst_file( "gntp.0.RHC_ND_nueflux_nuebeam15k_gst",RHC,NU, e_e_rhc_sf);//
+		gst_file* RHC_nuebar= new gst_file( "gntp.0.RHC_ND_nuebarflux_nuebarbeam15k_gst",RHC,NUBAR,ebar_ebar_rhc_sf);//
+		gst_file* RHC_numu = new gst_file( "gntp.0.RHC_ND_numuflux_numubeam250k_gst",RHC,NU,mu_mu_rhc_sf);//
+		gst_file* RHC_numubar= new gst_file( "gntp.0.RHC_ND_numubarflux_numubarbeam1M_gst",RHC,NUBAR,mubar_mubar_rhc_sf);//
+		gst_file* RHC_numu_nuebeam = new gst_file( "gntp.0.RHC_ND_numuflux_nuebeam10k_gst",RHC,NU,mu_e_rhc_sf);//
+		gst_file* RHC_numubar_nuebarbeam= new gst_file( "gntp.0.RHC_ND_numubarflux_nuebarbeam30k_gst",RHC,NUBAR,mubar_ebar_rhc_sf);//
+
+		RHC_numu->setHistLocations({"","elike_mumisid","","elike_ncmisid"});
+		RHC_numubar->setHistLocations({"","elike_antimumisid","","elike_antincmisid"});
+		RHC_nutau->setHistLocations({"","","elike_taumisid",""});
+		RHC_nutaubar->setHistLocations({"","","elike_antitaumisid",""});
+		RHC_nue->setHistLocations({"elike_intrinsic","","",""});
+		RHC_nuebar->setHistLocations({"elike_antiintrinsic","","",""});
+		RHC_numu_nuebeam->setHistLocations({"elike_fullosc","","",""});
+		RHC_numubar_nuebarbeam->setHistLocations({"elike_antifullosc","","",""});
+
+			std::vector<gst_file*> RHC_files = {RHC_numu, RHC_numubar, RHC_nutau, RHC_nutaubar, RHC_nue, RHC_nuebar, RHC_numu_nuebeam, RHC_numubar_nuebarbeam};
+
+		for(auto &f: FHC_files){
+			genie_study(f);
+			genie_NC(f);
+		}
+		
+		for(auto &f: RHC_files){
+			genie_study(f);
+			genie_NC(f);
+		}
+
+	}
 	//std::cout<<"Starting wierd NC numu_nuebeam."<<std::endl;
 	//genie_NC(numu_nuebeam);
 	//std::cout<<"Starting wierd NC numubear_nuebarbeam."<<std::endl;
 	//genie_NC(numubar_nuebarbeam);
 
-}
+
 
 
 

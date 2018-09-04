@@ -664,7 +664,7 @@ void genie_mu(gst_file * file){
 
 
 			//Nrevertex. for stats.
-			int Nrevertex = 10;
+			int Nrevertex = 1;
 			for(int k=0;k<Nrevertex; k++){
 
 				double vertex_weight = 1.0/((double) Nrevertex);
@@ -946,6 +946,69 @@ void run_all_genie_mu(){
 		gst_file* RHC_nutau= new gst_file( "gntp.0.RHC_FD_numuflux_nutaubeam10k_gst",RHC,NU, 0.512185);
 		gst_file* RHC_numu = new gst_file( "gntp.0.RHC_FD_numuflux_numubeam20k_gst",RHC,NU,0.256093);
 		gst_file* RHC_numubar= new gst_file( "gntp.0.RHC_FD_numubarflux_numubarbeam50k_gst",RHC,NUBAR,0.395868);
+
+		RHC_numu->setHistLocations({"mulike_intrinsic","","mulike_ncmisid"});
+		RHC_numubar->setHistLocations({"mulike_antiintrinsic","","mulike_antincmisid"});
+		RHC_nutau->setHistLocations({"","mulike_taumisid",""});
+		RHC_nutaubar->setHistLocations({"","mulike_antitaumisid",""});
+		
+		std::vector<gst_file*> RHC_files = {RHC_numu, RHC_numubar, RHC_nutau, RHC_nutaubar};
+
+		for(auto &f: FHC_files){
+			genie_mu(f);
+		}
+		
+		for(auto &f: RHC_files){
+			genie_mu(f);
+		}
+	
+
+
+
+
+}
+
+
+void run_all_genie_mu_ND(){
+		int FHC = 0;
+		int RHC = 1;
+		
+		int NU = 0;
+		int NUBAR = 1;
+		
+		float mu_mu_fhc_sf = 1.10634*10*50/1500.;
+		float mubar_mubar_fhc_sf = 0.181760*10*10/100.;
+		float mubar_taubar_fhc_sf = 0.090880*10*20/10.;
+		float mu_tau_fhc_sf = 2.76584*10*20/100.;
+		
+		//Neutrino Mode
+		gst_file * FHC_numu = new gst_file( "gntp.0.FHC_ND_numuflux_numubeam1p5M_gst",FHC,NU,mu_mu_fhc_sf);//"near"
+		gst_file* FHC_numubar= new gst_file( "gntp.0.FHC_ND_numubarflux_numubarbeam100k_gst",FHC,NUBAR,mubar_mubar_fhc_sf);
+		gst_file* FHC_nutaubar= new gst_file( "gntp.0.FHC_ND_numubarflux_nutaubarbeam10k_gst",FHC,NUBAR,mubar_taubar_fhc_sf);
+		gst_file* FHC_nutau= new gst_file( "gntp.0.FHC_ND_numuflux_nutaubeam100k_gst",FHC,NU,mu_tau_fhc_sf);
+
+		// Sets the histograms that each stage of genie_study goes to we have intrinsic/fullosc, muonmisid, taumisid
+		// leave as empty string if nothing goes there for that sample
+		// constructs using 
+		// FOr muons 0: intrinsic, 1: tau, 2: NC
+		FHC_numu->setHistLocations({"mulike_intrinsic","","mulike_ncmisid"});
+		FHC_numubar->setHistLocations({"mulike_antiintrinsic","","mulike_antincmisid"});
+		FHC_nutau->setHistLocations({"","mulike_taumisid",""});
+		FHC_nutaubar->setHistLocations({"","mulike_antitaumisid",""});
+
+		std::vector<gst_file*> FHC_files = {FHC_numu, FHC_numubar, FHC_nutau, FHC_nutaubar};
+		
+
+		float mubar_taubar_rhc_sf = 0.989670*10*20/30.;
+		float mu_tau_rhc_sf = 0.512185*10*10/10.;
+		float mu_mu_rhc_sf = 0.256093*10*20/250.;
+		float mubar_mubar_rhc_sf = 0.395868*10*50/1000.;
+
+		//Anti_neutrino Mode
+		gst_file* RHC_nutaubar= new gst_file( "gntp.0.RHC_ND_numubarflux_nutaubarbeam30k_gst",RHC,NUBAR,mubar_taubar_rhc_sf);
+		gst_file* RHC_nutau= new gst_file( "gntp.0.RHC_ND_numuflux_nutaubeam10k_gst",RHC,NU,mu_tau_rhc_sf);
+		gst_file* RHC_numu = new gst_file( "gntp.0.RHC_ND_numuflux_numubeam250k_gst",RHC,NU,mu_mu_rhc_sf);
+		gst_file* RHC_numubar= new gst_file( "gntp.0.RHC_ND_numubarflux_numubarbeam1M_gst",RHC,NUBAR,mubar_mubar_rhc_sf);
 
 		RHC_numu->setHistLocations({"mulike_intrinsic","","mulike_ncmisid"});
 		RHC_numubar->setHistLocations({"mulike_antiintrinsic","","mulike_antincmisid"});

@@ -164,8 +164,6 @@ int main(int argc, char* argv[])
     
     
     //neutrinoModel bkgModel(0.1,0.0,0.0);//not really sure if this returns 3+0 osc.
-
-    
     SBNosc * sbn_bkg_spec = new SBNosc((whipping_star_location+"data/precomp/SBN_bkg_all").c_str(),sbn_xml);
     sbn_bkg_spec->setBothMode();
     sbn_bkg_spec->compressVector();
@@ -173,8 +171,6 @@ int main(int argc, char* argv[])
     //sbn_bkg_spec->OscillateThis();
     //sbn_bkg_spec->compressVector();
     
-    
-
     int line_count = 0;
     while (std::getline(in, str)) {
       std::cout << " this shoud be working " << std::endl;
@@ -214,55 +210,62 @@ int main(int argc, char* argv[])
 	//  std::cout << "This mass " <<  lineinfile.at(2) << " is out of bound, want to skip the evts" << std::endl;
 	//  continue;
         //}
-        /*
-         std::vector<double> test_sterile_angles = element_convert_to_params (lineinfile.at(0), lineinfile.at(1), 0, 0, 0, want_simple);
         
-        //std::cout << "t14 : " << test_sterile_angles.at(0) << " , t24: " << test_sterile_angles.at(1) << " , t34: " << test_sterile_angles.at(2) <<std::endl;
-        angles.at(3) = test_sterile_angles.at(0);
-        */
+        
 	double t14;
 	double t24;
+	double t34;
+	double d14;
 
 	t14 = std::stod(lineinfile.at(2));
 	t24 = std::stod(lineinfile.at(4));
+	t34 = std::stod(lineinfile.at(6));
+	d14 = std::stod(lineinfile.at(8));
 
-	//std::cout << "trying to call signal model:" << std::endl;
-
+	//std::vector<double> test_sterile_angles = element_convert_to_params (t14, t24, 0, 0, 0, want_simple);
+        //angles.at(3) = test_sterile_angles.at(0);
         neutrinoModel signalModel(1.7, std::sin(t14*3.14159/180.), std::cos(t14*3.14159/180.)*std::sin(t24*3.14159/180.));//m4, ue4. um4
         
-	//std::cout << "called signal model : " << std::endl;
-        
-        
-        
-        //Now create a oscillation spectra, constructed the same.
+
         SBNosc * sbn_sig_spec = new SBNosc((whipping_star_location+"data/precomp/SBN_bkg_all").c_str(),sbn_xml);
 
-	//std::cout << " this shoud be working ... " << std::endl;
+
+        sbn_sig_spec->compressVector();
+        sbn_sig_spec->load_model(signalModel);
+        sbn_sig_spec->OscillateThis();
         sbn_sig_spec->compressVector();
 
-	//std::cout << " this shoud be working .... " << std::endl;
-        sbn_sig_spec->load_model(signalModel);
-	//std::cout << " this shoud be working ..... " << std::endl;
-        sbn_sig_spec->OscillateThis();
-	//std::cout << " this shoud be working ...... " << std::endl;
-        sbn_sig_spec->compressVector();
-	//std::cout << " this shoud be working ....... " << std::endl;
+	angles.at(3) = t14;
+	angles.at(4) = t24;
+	angles.at(5) = t34;
+	phases.at(1) = d14;
+
+	std::string dune_sig_name = order_names.at(0)+"_DCP_"+to_string_prec(0.0,3)+"_T23_"+to_string_prec(theta23.at(3),3)+"_T14_"+to_string_prec(t14,3)+"_T24_"+to_string_prec(t24,3)+"_T34_"+to_string_prec(t34,3)+"_D14_"+to_string_prec(d14,6);;
+	SBNspec * dune_sig_spec = new SBNspec(("/a/data/westside/yjwa/NW/DUNE_SBN_condor/condor_tests/"+dune_sig_name+".SBNspec").c_str(),dune_xml);    
+    
+	dune_sig_spec->compressVector();
+
+
+        //And for background, load up an example precomputed background                                                                                                     
+	std::string dune_bkg_name = order_names.at(0)+"_DCP_"+to_string_prec(0.0,3)+"_T23_"+to_string_prec(theta23.at(3),3);
+        SBNspec * dune_bkg_spec = new SBNspec(("precomp/"+dune_bkg_name+".SBNspec").c_str(),dune_xml);
+	std::cout << "Combined fit :: lodaing DUNE bkg ...  " << dune_bkg_name << std::endl;
+
+	SBNchi dune_chi(*dune_bkg_spec,*frac_covar_DUNE);
+     
         
-        
-        
-        
-        //	SBNchi dune_chi(*dune_bkg_spec, *frac_covar_DUNE);
+        //SBNchi dune_bkg_chi(*dune_bkg_spec, *frac_covar_DUNE);
         SBNchi sbn_chi(*sbn_bkg_spec, *frac_covar_SBN);
 	//std::cout << " this shoud be working ........ " << std::endl;
-        //	double ans_dune = dune_chi.CalcChi(dune_sig_spec);
+        double ans_dune = dune_chi.CalcChi(dune_sig_spec);
         double ans_sbn = sbn_chi.CalcChi(sbn_sig_spec);
 	//std::cout << " this shoud be working ......... " << std::endl;
-        //std::cout<<ans_dune<<" "<<ans_sbn<<" "<<ans_dune+ans_sbn<<std::endl;
+        std::cout<<ans_dune<<" "<<ans_sbn<<" "<<ans_dune+ans_sbn<<std::endl;
         
         //std::cout<<ans_sbn<<std::endl;
         
-	paramchistream<<precalc_name<<"_SBN_"<<ans_sbn<<std::endl;
-	std::cout << precalc_name << "_SBN_" << ans_sbn << std::endl;
+	paramchistream<<precalc_name<<"_SBN_"<<ans_sbn<<"_DUNE_"<<ans_dune<<"_SBN+DUNE_"<<ans_sbn+ans_dune<<std::endl;
+	std::cout << precalc_name << "_SBN_" << ans_sbn<< "_DUNE_"<<ans_dune<<"_SBN+DUNE_"<<ans_sbn+ans_dune  << std::endl;
 
 
         
@@ -272,11 +275,7 @@ int main(int argc, char* argv[])
     }
     std::cout << "How many lines in 90CL : " << line_count << std::endl;
 
-    std::cout << "convert element to params test" << std::endl;
-    
-    
-    
-    
+    //std::cout << "convert element to params test" << std::endl;
     
 
 	//construct a signalModel (this is because the way SBN took in its parameters is different. must change that in future)
@@ -300,53 +299,46 @@ int main(int argc, char* argv[])
 	//The dune spectra is calculated on the FLY with full matter effects, so takes a while.     
 	
     //for now just SBN for CL coverage test
-    /*
-    genDUNE * dune_sig_spec = new genDUNE(dune_xml);
-	dune_sig_spec->prob = new SBNprob(4,angles,phases, mass_splittings);
-	dune_sig_spec->preCalculateProbs();		
-	dune_sig_spec->doMC();
-    
+        
 
 	//And for background, load up an example precomputed background
-	std::string dune_bkg_name = order_names.at(0)+"_DCP_"+to_string_prec(0.0,3)+"_T23_"+to_string_prec(theta23.at(6),3);
-	SBNspec * dune_bkg_spec = new SBNspec(("precomp/"+dune_bkg_name+".SBNspec").c_str(),dune_xml);	
-    std::cout << "Combined fit :: lodaing DUNE bkg ...  " << dune_bkg_name << std::endl;
+    //	std::string dune_bkg_name = order_names.at(0)+"_DCP_"+to_string_prec(0.0,3)+"_T23_"+to_string_prec(theta23.at(6),3);
+    //	SBNspec * dune_bkg_spec = new SBNspec(("precomp/"+dune_bkg_name+".SBNspec").c_str(),dune_xml);	
+    //std::cout << "Combined fit :: lodaing DUNE bkg ...  " << dune_bkg_name << std::endl;
 
     
     
 	//Now create a background only spectra from preloaded. This should point to whipping star!
 	//std::string whipping_star_location = "/home/mark/work/SBNfit/whipping_star/";
-    std::string whipping_star_location = "/Users/yeon-jaejwa/sandbox/ws/whipping_star/";//yj
+    //std::string whipping_star_location = "/Users/yeon-jaejwa/sandbox/ws/whipping_star/";//yj
 
-	SBNspec* sbn_bkg_spec = new SBNspec((whipping_star_location+"data/precomp/SBN_bkg_all").c_str(), sbn_xml);
+    //	SBNspec* sbn_bkg_spec = new SBNspec((whipping_star_location+"data/precomp/SBN_bkg_all").c_str(), sbn_xml);
     
     
     //std::cout << "Combined fit :: lodaing SBN bkg ...  " << dune_bkg_name << std::endl;
     
-	sbn_bkg_spec->compressVector();
+    //	sbn_bkg_spec->compressVector();
 
 	//Now create a oscillation spectra, constructed the same.
-	SBNosc * sbn_sig_spec = new SBNosc((whipping_star_location+"data/precomp/SBN_bkg_all").c_str(),sbn_xml);
-	sbn_sig_spec->compressVector();
-	sbn_sig_spec->load_model(signalModel);
-	sbn_sig_spec->OscillateThis();
-	sbn_sig_spec->compressVector();
+	//SBNosc * sbn_sig_spec = new SBNosc((whipping_star_location+"data/precomp/SBN_bkg_all").c_str(),sbn_xml);
+	//sbn_sig_spec->compressVector();
+	//sbn_sig_spec->load_model(signalModel);
+	//sbn_sig_spec->OscillateThis();
+	//	sbn_sig_spec->compressVector();
     
-    
-	
 
 //	SBNchi dune_chi(*dune_bkg_spec, *frac_covar_DUNE);
-	SBNchi sbn_chi(*sbn_bkg_spec, *frac_covar_SBN);
+	///SBNchi sbn_chi(*sbn_bkg_spec, *frac_covar_SBN);
 
 //	double ans_dune = dune_chi.CalcChi(dune_sig_spec);
-	double ans_sbn = sbn_chi.CalcChi(sbn_sig_spec);
+	//double ans_sbn = sbn_chi.CalcChi(sbn_sig_spec);
 	
 	//std::cout<<ans_dune<<" "<<ans_sbn<<" "<<ans_dune+ans_sbn<<std::endl;
     
-    std::cout<<ans_sbn<<std::endl;
+	//std::cout<<ans_sbn<<std::endl;
 	
 	
-	//truth->compareSBNspecs(sterile,"DUNE_compare.root");*/
+	//truth->compareSBNspecs(sterile,"DUNE_compare.root");
 
 
 
@@ -369,10 +361,7 @@ std::vector<double> element_convert_to_params (double Ue4, double Um4, double ph
      
      unknowns are theta14, 24, 34, Ut4, Us4
      
-     */
-    
-    
-    
+    */    
     double theta14 = -1000;
     double theta24 = -1000;
     double theta34 = -1000;
