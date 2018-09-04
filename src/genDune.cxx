@@ -249,9 +249,9 @@ int genDUNE::preCalculateProbs(){
 			s2<<i<<" "<<j<<" "<<" ";
 			for(double en = 0.001; en < 50; en+= 0.01){
 				tmpen_far.push_back(prob->probabilityMatterExact(i,j,1,en,1300));//prob?
-				tmpen_near.push_back(prob->probabilityVacuumExact(i,j,1,en,1.0));//yj near detector is too far. .525 km?
-				s1<<tmpen_far.back()<<" ";
-				s2<<tmpen_near.back()<<" ";
+				tmpen_near.push_back(prob->probabilityVacuumExact(i,j,1,en,0.525));//yj near detector is too far. .525 km?
+				s2<<tmpen_far.back()<<" ";
+				s1<<tmpen_near.back()<<" ";
 			}
 			s1<<"\n";
 			s2<<"\n";
@@ -284,8 +284,8 @@ int genDUNE::preCalculateProbs(){
 				tmpen_farbar.push_back(prob->probabilityMatterExact(i,j,-1,en,1300));
 				tmpen_nearbar.push_back(prob->probabilityVacuumExact(i,j,-1,en,1.0));//yj near detector is too far. .525 km?
 
-				s3<<tmpen_farbar.back()<<" ";
-				s4<<tmpen_nearbar.back()<<" ";
+				s4<<tmpen_farbar.back()<<" ";
+				s3<<tmpen_nearbar.back()<<" ";
 			}
 			s3<<"\n";
 			s4<<"\n";
