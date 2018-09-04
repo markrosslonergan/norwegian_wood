@@ -3,7 +3,7 @@ include_directories(inc)
 #include_directories(/usr/local/include/globes)
 
 
-add_executable (dune_sbn dune_sbn.cxx genDune.cxx)
+add_executable (dune_sbn dune_sbn.cxx genDune.cxx plt_order.cxx plt_cpv.cxx)
 add_executable (probtest probtest.cxx)
 add_executable (biprob biprob.cxx)
 add_executable (combined combined.cxx genDune.cxx)

@@ -38,24 +38,14 @@
 #include "SBNfit3pN.h"
 
 
-
 #include "genDune.h"
+#include "plotting_tools.h"
 
 #define no_argument 0
 #define required_argument 1
 #define optional_argument 2
 
 using namespace sbn;
-
-
-template <typename T>
-std::string to_string_prec(const T a_value, const int n = 6)
-{
-  std::ostringstream out;
-  out <<std::fixed<< std::setprecision(n) << a_value;
-  //what is std::fixed? // just returning the number with 6 digits.
-  return out.str();
-}
 
 #include <limits>
 
@@ -104,7 +94,10 @@ int main(int argc, char* argv[])
       {0,			no_argument, 		0, 0},
       {"process",			required_argument, 	0,  'p'},
       {"cpv4", required_argument, 0, 'c'},
+    
       {"massorder", required_argument, 0, 's'},
+      {"order", required_argument, 0, 'o'},
+      {"quickcpv",required_argument, 0, 'q'}
     };
 
     
@@ -112,7 +105,7 @@ int main(int argc, char* argv[])
 
   while(iarg != -1)
     {
-      iarg = getopt_long(argc,argv, "x:m:t:f:p:c:s:", longopts, &index);
+      iarg = getopt_long(argc,argv, "x:m:t:f:p:c:o:q:s:", longopts, &index);
 
       //if(0 <iarg && iarg< 1000){
         
@@ -140,6 +133,24 @@ int main(int argc, char* argv[])
 	  std::cout<<"optarg : " <<which_process << std::endl;
 	  std::cout<<"optarg : " <<which_process << " mode : " << which_mode<< std::endl;
 	  break;
+	case 'o':
+	  //whiche_mode = "gen4";
+	  which_process = atoi(optarg)+1;
+	  which_mode = "process_order";
+
+	  std::cout<<"optarg : " <<which_process << std::endl;
+	  std::cout<<"optarg : " <<which_process << " mode : " << which_mode<< std::endl;
+	  break;
+	case 'q':
+	  //whiche_mode = "gen4";
+	  which_process = atoi(optarg)+1;
+	  which_mode = "process_cpv3p1";
+
+	  std::cout<<"optarg : " <<which_process << std::endl;
+	  std::cout<<"optarg : " <<which_process << " mode : " << which_mode<< std::endl;
+	  break;
+
+
 
 	case 'c':
 	  which_process = atoi(optarg)+1;
@@ -161,7 +172,6 @@ int main(int argc, char* argv[])
 	  std::cout<<"\t-x\t--xml\t\tInput .xml file for SBNconfig"<<std::endl;
 	  return 0;
 	}
-
     }
 
   //SBNspec * dune_spec = new SBNspec("~/work/pheno/DUNE+SBN/yeonjae/sb_macros/DUNE_bf"  , xml);
@@ -178,8 +188,12 @@ int main(int argc, char* argv[])
     std::vector<double> mass_splittings = {7.5*pow(10,-5), 2.552*pow(10,-3),0};
     genDUNE bkg_only(xml); //yj genDUNE!
 
-    bkg_only.prob = new SBNprob(4, angles, phases, mass_splittings);
-    bkg_only.preCalculateProbs();
+    if(true){
+	bkg_only.loadPreCalculatedProbs("./");
+    }else{
+  	  bkg_only.prob = new SBNprob(4, angles, phases, mass_splittings);
+  	  bkg_only.preCalculateProbs();
+    }
 
     bkg_only.doMC("three_neutrino");
     bkg_only.writeOut("three_neutrino.root");
@@ -191,6 +205,7 @@ int main(int argc, char* argv[])
   }
 
   else if(which_mode =="order"){
+   
     std::ofstream dunestream;
     dunestream.open ("DUNE_order_NO.dat");
         
@@ -465,9 +480,10 @@ int main(int argc, char* argv[])
 
     std::fstream rootlist("/a/data/westside/yjwa/NW/DUNE_SBN_condor/condor_dm1ev/rootlist.txt");
         
-    std::fstream file("/a/data/westside/yjwa/NW/norwegian_wood/build/src/process_t14_t24_t34_d14.txt");
+    std::fstream file("/a/data/westside/yjwa/NW/norwegian_wood/build/src/process_t14_t24_t34.txt");
     //std::fstream file("/Users/yeon-jaejwa/sandbox/NW/norwegian_wood/build/src/process_t14_t24_t34_d14.txt");
-        
+      
+     
     //file.seekg(which_process-1);
         
         
@@ -793,9 +809,265 @@ int main(int argc, char* argv[])
       }
     }
   }
-   
-  
+
+  else if(which_mode =="process_cpv3p1"){
+      
+      std::string process_line;
+      std::string delimiter = "_";
+      
+      std::fstream datlist("/a/data/westside/markross/DUNE_SBN_condor/order/datlistIO.txt");
+     
  
+      std::fstream file("/a/data/westside/markross/norwegian_wood/build/src/process_t14_t24_t34_d14.txt");
+      //std::fstream file("/a/data/westside/markross/DUNE_SBN_condor/order/makeup.list");
+     
+      //file.seekg(which_process-1); 
+      //
+      int working_line = which_process;      
+      
+      //getline.
+      
+      //std::cout<<which_process<<std::endl; 
+      GotoLine(file, working_line);//320+320+90 condor job s 160
+      
+      file >> process_line;
+      
+      //std::cout<<"Anything?"<<std::endl;     
+      std::cout << process_line;
+      //std::cout<<"Anything?"<<std::endl;     
+ 
+      //std::cin.get();
+      
+      
+      
+      std::vector<std::string> lineinfile;
+      
+      size_t pos = 0;
+      std::string sub;
+      
+      std::string precalc_name;
+      
+      std::string line;
+      
+      int after_process_num = 0;
+      
+      while( (pos = process_line.find(delimiter)) != std::string::npos) {
+          
+          
+          sub = process_line.substr(0,pos);
+          
+	 // std::cout << stod(sub) << std::endl;
+
+          lineinfile.push_back(sub);
+          process_line.erase(0, pos+delimiter.length());
+          
+          
+          if (after_process_num == 0){
+              
+              precalc_name = process_line;
+          }
+          after_process_num++;
+          
+      }
+      lineinfile.push_back(process_line);
+      //std::cout << str << std::endl;
+      //line_count++;
+      
+      bool donejob = false;
+      
+      while( std::getline (datlist, line)){
+          if(line.find(precalc_name) != std::string::npos){
+              
+	    donejob = true;
+          }
+          
+      }
+      
+      if (donejob){
+          std::cout << "This is donejob" <<std::endl;
+          exit(0);
+      }
+      
+      for (int i = 0 ; i< lineinfile.size() ; i++){
+          std::cout << "=== " << i << "-th element in process line is "  <<lineinfile.at(i) << std::endl;
+      }
+
+      //std::ofstream dunestream;
+      //dunestream.open ("DUNE_cpv3+1to3+0_NO_cpv4_testpoint.dat");
+     
+
+
+ 
+      std::vector<double> angles = {33.6, 42.1, 8.5, 0,0,0};
+      std::vector<double> angles_oct = {33.6, 49.6, 8.5, 0,0,0};
+      std::vector<double> phases = {0,0,0};
+      std::vector<double> phases_180 = {180,0,0};
+      //http://lbne2-docdb.fnal.gov/cgi-bin/RetrieveFile?docid=10688&filename=DUNE-CDR-physics-volume.pdf&version=10
+      std::vector<double> mass_splittings = {7.5*pow(10,-5), 2.457*pow(10,-3),0};
+      std::vector<double> mass_splittings_inv = {7.5*pow(10,-5), -2.449*pow(10,-3),0};
+      
+      TFile *fin = new TFile("/a/data/westside/yjwa/NW/norwegian_wood/covar/covariance_matrices_xcheck_1408x1408.root","read");
+      TMatrixT<double> * m = (TMatrixT<double>*)fin->Get("TMatrixT<double>;1");
+      
+      std::vector<std::string> order_names = {"NO","IO"};
+      std::vector<double> order_vals = {2.457*pow(10,-3), -2.449*pow(10,-3)};
+      
+      std::vector<double> theta23 = {38,40,42,44,45,46,47,49,51,53};
+      std::vector<double> theta23_NO = {42.1-2,42.1-1, 42.1, 42.1+1,42.1+2};
+      std::vector<double> theta23_IO = {49.6-2,49.6-1, 49.6, 49.6+1,49.6+2};
+      
+      double t14=10000;
+      double t24=10000;
+      double t34=10000;
+      double d14=10000;
+      
+      //char * str_t14 = lineinfile.at(2);
+	std::cout<<"Getting t14..etc.."<<std::endl;     
+ 
+      t14 = std::stod(lineinfile.at(2));
+      t24 = std::stod(lineinfile.at(4));
+      t34 = std::stod(lineinfile.at(6));
+      d14 = std::stod(lineinfile.at(8));
+
+ 
+	std::ofstream dunestream;
+	std::cout<<"Starting on CPV true plot"<<std::endl;
+	std::string out_name  = "cpv3p1_"+order_names.at(0)+"_T14_"+to_string_prec(t14,3)+"_T24_"+to_string_prec(t24,3)+"_T34_"+to_string_prec(t34,3)+"."+to_string_prec(working_line,2)+".dat";
+	calc_cpv_3p1( &dunestream, out_name, xml, t14, t24, t34, m);
+
+  }
+
+
+
+     
+  else if(which_mode =="process_order"){
+      
+      std::string process_line;
+      std::string delimiter = "_";
+      
+      std::fstream datlist("/a/data/westside/markross/DUNE_SBN_condor/order/datlistIO.txt");
+     
+ 
+      std::fstream file("/a/data/westside/markross/norwegian_wood/build/src/process_t14_t24_t34_d14.txt");
+      //std::fstream file("/a/data/westside/markross/DUNE_SBN_condor/order/makeup.list");
+     
+      //file.seekg(which_process-1);
+      
+      
+      //getline.
+      
+      //std::cout<<which_process<<std::endl; 
+      GotoLine(file, which_process+960);//320+320+90 condor job s 160
+      
+      file >> process_line;
+      
+      //std::cout<<"Anything?"<<std::endl;     
+      std::cout << process_line;
+      //std::cout<<"Anything?"<<std::endl;     
+ 
+      //std::cin.get();
+      
+      
+      
+      std::vector<std::string> lineinfile;
+      
+      size_t pos = 0;
+      std::string sub;
+      
+      std::string precalc_name;
+      
+      std::string line;
+      
+      int after_process_num = 0;
+      
+      while( (pos = process_line.find(delimiter)) != std::string::npos) {
+          
+          
+          sub = process_line.substr(0,pos);
+          
+	 // std::cout << stod(sub) << std::endl;
+
+          lineinfile.push_back(sub);
+          process_line.erase(0, pos+delimiter.length());
+          
+          
+          if (after_process_num == 0){
+              
+              precalc_name = process_line;
+          }
+          after_process_num++;
+          
+      }
+      lineinfile.push_back(process_line);
+      //std::cout << str << std::endl;
+      //line_count++;
+      
+      bool donejob = false;
+      
+      while( std::getline (datlist, line)){
+          if(line.find(precalc_name) != std::string::npos){
+              
+	    donejob = true;
+          }
+          
+      }
+      
+      if (donejob){
+          std::cout << "This is donejob" <<std::endl;
+          exit(0);
+      }
+      
+      for (int i = 0 ; i< lineinfile.size() ; i++){
+          std::cout << "=== " << i << "-th element in process line is "  <<lineinfile.at(i) << std::endl;
+      }
+
+      //std::ofstream dunestream;
+      //dunestream.open ("DUNE_cpv3+1to3+0_NO_cpv4_testpoint.dat");
+     
+
+
+ 
+      std::vector<double> angles = {33.6, 42.1, 8.5, 0,0,0};
+      std::vector<double> angles_oct = {33.6, 49.6, 8.5, 0,0,0};
+      std::vector<double> phases = {0,0,0};
+      std::vector<double> phases_180 = {180,0,0};
+      //http://lbne2-docdb.fnal.gov/cgi-bin/RetrieveFile?docid=10688&filename=DUNE-CDR-physics-volume.pdf&version=10
+      std::vector<double> mass_splittings = {7.5*pow(10,-5), 2.457*pow(10,-3),0};
+      std::vector<double> mass_splittings_inv = {7.5*pow(10,-5), -2.449*pow(10,-3),0};
+      
+      TFile *fin = new TFile("/a/data/westside/yjwa/NW/norwegian_wood/covar/covariance_matrices_xcheck_1408x1408.root","read");
+      TMatrixT<double> * m = (TMatrixT<double>*)fin->Get("TMatrixT<double>;1");
+      
+      std::vector<std::string> order_names = {"NO","IO"};
+      std::vector<double> order_vals = {2.457*pow(10,-3), -2.449*pow(10,-3)};
+      
+      std::vector<double> theta23 = {38,40,42,44,45,46,47,49,51,53};
+      std::vector<double> theta23_NO = {42.1-2,42.1-1, 42.1, 42.1+1,42.1+2};
+      std::vector<double> theta23_IO = {49.6-2,49.6-1, 49.6, 49.6+1,49.6+2};
+      
+      double t14=10000;
+      double t24=10000;
+      double t34=10000;
+      double d14=10000;
+      
+      //char * str_t14 = lineinfile.at(2);
+	std::cout<<"Getting t14..etc.."<<std::endl;     
+ 
+      t14 = std::stod(lineinfile.at(2));
+      t24 = std::stod(lineinfile.at(4));
+      t34 = std::stod(lineinfile.at(6));
+      d14 = std::stod(lineinfile.at(8));
+
+ 
+	std::ofstream dunestream;
+	std::cout<<"Starting on mass ordering plot"<<std::endl;
+	std::string out_name  = "order_"+order_names.at(1)+"_T14_"+to_string_prec(t14,3)+"_T24_"+to_string_prec(t24,3)+"_T34_"+to_string_prec(t34,3)+"_D14_"+to_string_prec(d14,6)+".dat";
+	calc_neutrino_ordering_3p1( &dunestream, out_name, xml, t14, t24, t34, d14 );
+
+  }
+
+
+
   else if(which_mode =="process_cpv4"){
       
       std::string process_line;
@@ -1007,7 +1279,6 @@ int main(int argc, char* argv[])
                       
                       //one loop for dcp ends here
 
-      
   }
 
 

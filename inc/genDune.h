@@ -100,6 +100,9 @@ class genDUNE : public sbn::SBgeN {
 		double interpolate_prob_near(int a, int b, double enu);
 		int preCalculateProbs();
 
+		int loadPreCalculatedProbs(std::string dir);
+
+
 		std::map<std::string, std::string> near_detector_name_map;
 		std::map<std::string, int> near_map_hist;
 
