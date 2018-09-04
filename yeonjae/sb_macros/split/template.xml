@@ -1,0 +1,20 @@
+<MCevents  multisim="1" name="XXXX" filename="/a/data/westside/markross/norwegian_wood/yeonjae/sb_macros/split/YYYY" pot="1" potscale="1">
+  <parameters
+     names = "ALL"
+     />
+  <btype type="0" names="int">
+    <branch name="NuType"/>
+    </btype>
+  <btype type= "1" names="double">
+    <branch name="Ereco"/>
+    <branch name="Etrue"/>
+    <branch name="L"/>
+    <branch name="Weight"/>
+    </btype>
+  <btype type= "2" names="int_array">
+    </btype>
+  <btype type= "3" names="double_array">
+    </btype>
+</MCevents>
+
+
