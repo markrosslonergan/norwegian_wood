@@ -3394,7 +3394,7 @@ void genie_NC(gst_file * file){
 		int NUBAR = 1;
 
 		//Neutrino Mode
-		gst_file* FHC_numu = new gst_file( "gntp.0.numu50k_gst",FHC,NU,1.10634); //
+		gst_file* FHC_numu = new gst_file( "gntp.0.FHC_FD_numuflux_numubeam150k_gst",FHC,NU,1.10634*0.3333); //
 		gst_file* FHC_numubar= new gst_file( "gntp.0.numubar10k_gst",FHC,NUBAR,0.181760);//
 		gst_file* FHC_nutaubar= new gst_file( "gntp.0.nutaubar20k_gst",FHC,NUBAR,0.090880);//
 		gst_file* FHC_nutau= new gst_file( "gntp.0.nutau20k_gst",FHC,NU,2.76584); //
@@ -3424,8 +3424,8 @@ void genie_NC(gst_file * file){
 		gst_file* RHC_nutau= new gst_file( "gntp.0.RHC_FD_numuflux_nutaubeam10k_gst",RHC,NU, 0.512185);//
 		gst_file* RHC_nue = new gst_file( "gntp.0.RHC_FD_nueflux_nuebeam10k_gst",RHC,NU, 0.0215175);//
 		gst_file* RHC_nuebar= new gst_file( "gntp.0.RHC_FD_nuebarflux_nuebarbeam10k_gst",RHC,NUBAR,0.0213827);//
-		gst_file* RHC_numu = new gst_file( "gntp.0.RHC_FD_numuflux_numubeam20k_gst",RHC,NU,0.256093);//
-		gst_file* RHC_numubar= new gst_file( "gntp.0.RHC_FD_numubarflux_numubarbeam50k_gst",RHC,NUBAR,0.395868);//
+		gst_file* RHC_numu = new gst_file( "gntp.0.RHC_FD_numuflux_numubeam26k_gst",RHC,NU,0.256093*20.0/26.0);//
+		gst_file* RHC_numubar= new gst_file( "gntp.0.RHC_FD_numubarflux_numubarbeam100k_gst",RHC,NUBAR,0.395868*0.5);//
 		gst_file* RHC_numu_nuebeam = new gst_file( "gntp.0.RHC_FD_numuflux_nuebeam10k_gst",RHC,NU,0.512185);//
 		gst_file* RHC_numubar_nuebarbeam= new gst_file( "gntp.0.RHC_FD_numubarflux_nuebarbeam20k_gst",RHC,NUBAR,0.989670);//
 
@@ -3467,14 +3467,14 @@ void genie_NC(gst_file * file){
 		float mu_e_fhc_sf =1.10634*10*50/160.;
 		float mubar_ebar_fhc_sf = 0.181760*10*10/10.;
 		//Neutrino Mode
-		gst_file* FHC_numu = new gst_file( "gntp.0.FHC_ND_numuflux_numubeam1p5M_gst",FHC,NU,mu_mu_fhc_sf); //
-		gst_file* FHC_numubar= new gst_file( "gntp.0.FHC_ND_numubarflux_numubarbeam100k_gst",FHC,NUBAR,mubar_mubar_fhc_sf);//
-		gst_file* FHC_nutaubar= new gst_file( "gntp.0.FHC_ND_numubarflux_nutaubarbeam10k_gst",FHC,NUBAR,mubar_taubar_fhc_sf);//
-		gst_file* FHC_nutau= new gst_file( "gntp.0.FHC_ND_numuflux_nutaubeam100k_gst",FHC,NU,mu_tau_fhc_sf); //
-		gst_file* FHC_nue = new gst_file( "gntp.0.FHC_ND_nueflux_nuebeam50k_gst",FHC,NU,e_e_fhc_sf); //
-		gst_file* FHC_nuebar= new gst_file( "gntp.0.FHC_ND_nuebarflux_nuebarbeam10k_gst",FHC,NUBAR,ebar_ebar_fhc_sf);//
-		gst_file* FHC_numu_nuebeam= new gst_file( "gntp.0.FHC_ND_numuflux_nuebeam160k_gst",FHC,NU,mu_e_fhc_sf); //
-		gst_file* FHC_numubar_nuebarbeam= new gst_file( "gntp.0.FHC_ND_numubarflux_nuebarbeam10k_gst",FHC,NUBAR,mubar_ebar_fhc_sf);//
+		gst_file* FHC_numu = new gst_file( "gntp.0.FHC_ND_numuflux_numubeam1p5M_gst",FHC,NU,mu_mu_fhc_sf,"near"); //
+		gst_file* FHC_numubar= new gst_file( "gntp.0.FHC_ND_numubarflux_numubarbeam100k_gst",FHC,NUBAR,mubar_mubar_fhc_sf,"near");//
+		gst_file* FHC_nutaubar= new gst_file( "gntp.0.FHC_ND_numubarflux_nutaubarbeam10k_gst",FHC,NUBAR,mubar_taubar_fhc_sf,"near");//
+		gst_file* FHC_nutau= new gst_file( "gntp.0.FHC_ND_numuflux_nutaubeam100k_gst",FHC,NU,mu_tau_fhc_sf,"near"); //
+		gst_file* FHC_nue = new gst_file( "gntp.0.FHC_ND_nueflux_nuebeam50k_gst",FHC,NU,e_e_fhc_sf,"near"); //
+		gst_file* FHC_nuebar= new gst_file( "gntp.0.FHC_ND_nuebarflux_nuebarbeam10k_gst",FHC,NUBAR,ebar_ebar_fhc_sf,"near");//
+		gst_file* FHC_numu_nuebeam= new gst_file( "gntp.0.FHC_ND_numuflux_nuebeam160k_gst",FHC,NU,mu_e_fhc_sf,"near"); //
+		gst_file* FHC_numubar_nuebarbeam= new gst_file( "gntp.0.FHC_ND_numubarflux_nuebarbeam10k_gst",FHC,NUBAR,mubar_ebar_fhc_sf,"near");//
 
 		// Sets the histograms that each stage of genie_study goes to we have intrinsic/fullosc, muonmisid, taumisid
 		// leave as empty string if nothing goes there for that sample
@@ -3504,14 +3504,14 @@ void genie_NC(gst_file * file){
 		 
 
 		//Anti_neutrino Mode
-		gst_file* RHC_nutaubar= new gst_file( "gntp.0.RHC_ND_numubarflux_nutaubarbeam30k_gst",RHC,NUBAR,mubar_taubar_rhc_sf);//
-		gst_file* RHC_nutau= new gst_file( "gntp.0.RHC_ND_numuflux_nutaubeam10k_gst",RHC,NU, mu_tau_rhc_sf);//
-		gst_file* RHC_nue = new gst_file( "gntp.0.RHC_ND_nueflux_nuebeam15k_gst",RHC,NU, e_e_rhc_sf);//
-		gst_file* RHC_nuebar= new gst_file( "gntp.0.RHC_ND_nuebarflux_nuebarbeam15k_gst",RHC,NUBAR,ebar_ebar_rhc_sf);//
-		gst_file* RHC_numu = new gst_file( "gntp.0.RHC_ND_numuflux_numubeam250k_gst",RHC,NU,mu_mu_rhc_sf);//
-		gst_file* RHC_numubar= new gst_file( "gntp.0.RHC_ND_numubarflux_numubarbeam1M_gst",RHC,NUBAR,mubar_mubar_rhc_sf);//
-		gst_file* RHC_numu_nuebeam = new gst_file( "gntp.0.RHC_ND_numuflux_nuebeam10k_gst",RHC,NU,mu_e_rhc_sf);//
-		gst_file* RHC_numubar_nuebarbeam= new gst_file( "gntp.0.RHC_ND_numubarflux_nuebarbeam30k_gst",RHC,NUBAR,mubar_ebar_rhc_sf);//
+		gst_file* RHC_nutaubar= new gst_file( "gntp.0.RHC_ND_numubarflux_nutaubarbeam30k_gst",RHC,NUBAR,mubar_taubar_rhc_sf,"near");//
+		gst_file* RHC_nutau= new gst_file( "gntp.0.RHC_ND_numuflux_nutaubeam10k_gst",RHC,NU, mu_tau_rhc_sf,"near");//
+		gst_file* RHC_nue = new gst_file( "gntp.0.RHC_ND_nueflux_nuebeam15k_gst",RHC,NU, e_e_rhc_sf,"near");//
+		gst_file* RHC_nuebar= new gst_file( "gntp.0.RHC_ND_nuebarflux_nuebarbeam15k_gst",RHC,NUBAR,ebar_ebar_rhc_sf,"near");//
+		gst_file* RHC_numu = new gst_file( "gntp.0.RHC_ND_numuflux_numubeam250k_gst",RHC,NU,mu_mu_rhc_sf,"near");//
+		gst_file* RHC_numubar= new gst_file( "gntp.0.RHC_ND_numubarflux_numubarbeam1M_gst",RHC,NUBAR,mubar_mubar_rhc_sf,"near");//
+		gst_file* RHC_numu_nuebeam = new gst_file( "gntp.0.RHC_ND_numuflux_nuebeam10k_gst",RHC,NU,mu_e_rhc_sf,"near");//
+		gst_file* RHC_numubar_nuebarbeam= new gst_file( "gntp.0.RHC_ND_numubarflux_nuebarbeam30k_gst",RHC,NUBAR,mubar_ebar_rhc_sf,"near");//
 
 		RHC_numu->setHistLocations({"","elike_mumisid","","elike_ncmisid"});
 		RHC_numubar->setHistLocations({"","elike_antimumisid","","elike_antincmisid"});

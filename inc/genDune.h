@@ -46,19 +46,32 @@ class genDUNE : public sbn::SBgeN {
 					breakdown_filename.push_back(token);
 					if(pos == std::string::npos) break;
 				}
-				if(breakdown_filename.at(0) == "nu"){
-					std::string near_name = "nu_near_"+breakdown_filename.at(2)+"_"+breakdown_filename.at(3);
-					if(debug) std::cout<<"Mapped to: "<<near_name<<" @ "<<map_hist[near_name]<<std::endl;
-					near_detector_name_map[ multisim_name.at(i)] = near_name;
-					near_map_hist[ multisim_name.at(i)] = map_hist[near_name] ;
-				} else if (breakdown_filename.at(0)=="nubar"){
-					std::string near_name = "nubar_near_"+breakdown_filename.at(2)+"_"+breakdown_filename.at(3);
-					if(debug) std::cout<<"Mapped to: "<<near_name<<" @ "<<map_hist[near_name]<<std::endl;
-					near_detector_name_map[multisim_name.at(i)] = near_name;
-					near_map_hist[multisim_name.at(i)] = map_hist[near_name]  ;			
+
+				if(breakdown_filename.at(1) == "near"){
+				
+					map_near_or_far[multisim_name.at(i)] = 0;
+
+				}else if(breakdown_filename.at(1) == "dune"){
+
+					map_near_or_far[multisim_name.at(i)] = 1;
 				}
 
 
+
+
+				if(breakdown_filename.at(0) == "nu"){
+			//		std::string near_name = "nu_near_"+breakdown_filename.at(2)+"_"+breakdown_filename.at(3);
+			//		if(debug) std::cout<<"Mapped to: "<<near_name<<" @ "<<map_hist[near_name]<<std::endl;
+			///		near_detector_name_map[ multisim_name.at(i)] = near_name;
+			//		near_map_hist[ multisim_name.at(i)] = map_hist[near_name] ;
+				} else if (breakdown_filename.at(0)=="nubar"){
+			//		std::string near_name = "nubar_near_"+breakdown_filename.at(2)+"_"+breakdown_filename.at(3);
+			//		if(debug) std::cout<<"Mapped to: "<<near_name<<" @ "<<map_hist[near_name]<<std::endl;
+			//		near_detector_name_map[multisim_name.at(i)] = near_name;
+			//		near_map_hist[multisim_name.at(i)] = map_hist[near_name]  ;			
+				}
+
+				
 				if (map_hist.count(multisim_name.at(i))!=1){
 					if(debug) std::cout<<"ERROR: one of the input multisim_tree's is not in the xml config: "<<multisim_name.at(i)<<std::endl;
 					exit(EXIT_FAILURE);
@@ -77,7 +90,10 @@ class genDUNE : public sbn::SBgeN {
 				std::string nam = multisim_name.at(i);
 				osc_pattern_vec.push_back(osc_pattern_map.at(nam));
 				map_hist_vec.push_back( map_hist[nam]);
-				map_hist_vec_near.push_back( map_hist[near_detector_name_map.at(nam)]);
+			//	map_hist_vec_near.push_back( map_hist[near_detector_name_map.at(nam)]);
+				
+				near_or_far.push_back(map_near_or_far.at(nam) );
+
 			}
 			
 
@@ -100,6 +116,10 @@ class genDUNE : public sbn::SBgeN {
 		std::map<std::string, std::pair<int,int>> osc_pattern_map;
 		std::vector<std::pair<int,int>> osc_pattern_vec;
 
+
+		std::vector<int> near_or_far;
+		std::map<std::string,int> map_near_or_far;
+		
 		std::vector<std::vector<std::vector<double>>> precalc_prob_farbar;
 		std::vector<std::vector<std::vector<double>>> precalc_prob_nearbar;
 	

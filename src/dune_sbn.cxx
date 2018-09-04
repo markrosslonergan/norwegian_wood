@@ -189,7 +189,7 @@ int main(int argc, char* argv[])
     genDUNE bkg_only(xml); //yj genDUNE!
 
     if(true){
-	bkg_only.loadPreCalculatedProbs("./");
+	  bkg_only.loadPreCalculatedProbs("./");
     }else{
   	  bkg_only.prob = new SBNprob(4, angles, phases, mass_splittings);
   	  bkg_only.preCalculateProbs();

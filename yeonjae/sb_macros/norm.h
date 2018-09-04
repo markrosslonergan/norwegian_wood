@@ -19,8 +19,11 @@ struct gst_file{
 	std::vector<std::string> hists;
 	std::vector<bool> in_use;	
 
-	gst_file(TString innam, int inbeam , int intype, double innorm) : filename(innam), beam_type(inbeam), nu_type(intype), norm(innorm){}; 
+	std::string tag;
 
+	gst_file(TString innam, int inbeam , int intype, double innorm) : filename(innam), beam_type(inbeam), nu_type(intype), norm(innorm){ tag = "dune";}; 
+	gst_file(TString innam, int inbeam , int intype, double innorm, std::string intag) : filename(innam), beam_type(inbeam), nu_type(intype), norm(innorm), tag(intag){}; 
+	
 	int setHistLocations(std::vector<string> strin){
 		std::string horncurrent;
 		if(beam_type==0) horncurrent = "nu";
@@ -29,7 +32,7 @@ struct gst_file{
 		for(auto &s: strin){
 
 			if(s!=""){
-				hists.push_back( horncurrent+"_dune_"+s);
+				hists.push_back( horncurrent+"_"+tag+"_"+s);
 				in_use.push_back(true);
 			}else{
 				hists.push_back("");
