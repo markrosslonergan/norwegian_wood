@@ -401,7 +401,7 @@ int main(int argc, char* argv[])
       
       while( std::getline (datlist, line)){
           if(line.find(precalc_name) != std::string::npos){
-	    donejob = true;
+	    //	    donejob = true;
           }
       }
       
