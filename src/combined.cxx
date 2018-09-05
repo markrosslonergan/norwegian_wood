@@ -69,7 +69,6 @@ std::string to_string_prec(const T a_value, const int n = 6)
 int main(int argc, char* argv[])
 {
 
-
 	std::string xml = "../../xml/dune.xml";
 	int iarg = 0;
 	opterr=1;
@@ -179,7 +178,8 @@ int main(int argc, char* argv[])
         while( (pos = str.find(delimiter)) != std::string::npos) {
             
             sub = str.substr(0,pos);
-            
+           
+ 
             
             //std::cout << stod(sub) << std::endl;
             lineinfile.push_back(stod(sub));
