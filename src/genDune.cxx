@@ -77,8 +77,12 @@ int genDUNE::tidyHistograms(){
 }
 
 double genDUNE::interpolate_prob_far(int a, int b, double enu){
-	int rnd = std::floor(enu/0.01);
+	if(enu > 39) enu = 39;
+
+	double bin = 0.02;	
+	int rnd = std::floor(enu/bin);
 	double p1,p2;
+
 
 	if(a<0 && b<0 ){
 		//		std::cout<<"INV2: "<<-a-1<<" "<<-b-1<<" anti "<<std::endl;
@@ -91,8 +95,8 @@ double genDUNE::interpolate_prob_far(int a, int b, double enu){
 	}
 
 
-	double e1 = (double)rnd*0.01;
-	double e2 = (double)(rnd+1.0)*0.01;
+	double e1 = (double)rnd*bin;
+	double e2 = (double)(rnd+1.0)*bin;
 
 
 	return lin_interp(enu, p1,e1,p2,e2 );
@@ -101,7 +105,10 @@ double genDUNE::interpolate_prob_far(int a, int b, double enu){
 
 
 double genDUNE::interpolate_prob_near(int a, int b, double enu){//yj
-	int rnd = std::floor(enu/0.01); //energy step is 0.01
+	if(enu > 39) enu = 39;
+	double bin = 0.02;
+
+	int rnd = std::floor(enu/bin); //energy step is 0.01
 	double p1,p2;
 
 	if(a<0 && b < 0){
@@ -112,8 +119,8 @@ double genDUNE::interpolate_prob_near(int a, int b, double enu){//yj
 		p2 = precalc_prob_near.at(a-1).at(b-1).at(rnd+1);
 	}
 
-	double e1 = (double)rnd*0.01;
-	double e2 = (double)(rnd+1.0)*0.01;
+	double e1 = (double)rnd*bin;
+	double e2 = (double)(rnd+1.0)*bin;
 
 
 	return this->lin_interp(enu, p1,e1,p2,e2    );
@@ -236,12 +243,19 @@ int genDUNE::loadPreCalculatedProbs(std::string dir){
 
 int genDUNE::preCalculateProbs(){
 
-	std::ofstream s1;   s1.open ("prob_precalc_nu_near.dat");
-	std::ofstream s2;   s2.open ("prob_precalc_nu_far.dat");
-	std::ofstream s3;   s3.open ("prob_precalc_nubar_near.dat");
-	std::ofstream s4;   s4.open ("prob_precalc_nubar_far.dat");
+//	std::ofstream s1;   s1.open ("prob_precalc_nu_near.dat");
+//	std::ofstream s2;   s2.open ("prob_precalc_nu_far.dat");
+//	std::ofstream s3;   s3.open ("prob_precalc_nubar_near.dat");
+//	std::ofstream s4;   s4.open ("prob_precalc_nubar_far.dat");
 
 	//yj i,j, are the number of flavors.
+	
+	double bin = 0.02;
+	double maxval = 40;
+
+	//Also, currently we do NOT calculate tau -> thing probabilities. :
+	//We only need e->e, mu->mu, mu->e, mu->tau and anti
+	
 	std::cout<<"Starting precalculating probs"<<std::endl;
 	for(int i = 0; i < 4; i++){
 		std::vector<std::vector<double>> tmp_near;
@@ -251,16 +265,24 @@ int genDUNE::preCalculateProbs(){
 			std::vector<double> tmpen_near;
 			std::vector<double> tmpen_far;
 
-			s1<<i<<" "<<j<<" "<<" ";
-			s2<<i<<" "<<j<<" "<<" ";
-			for(double en = 0.001; en < 50; en+= 0.01){
+
+			//if its tau->XX dont bother;
+			if(( i==3 || i == 2 )  || (i==0 && j!=0 ) || (i==1 && j==3)  ){
+				 tmp_near.push_back(tmpen_near);
+				 tmp_far.push_back(tmpen_far);
+				 continue;
+			}
+
+	//		s1<<i<<" "<<j<<" "<<" ";
+	//		s2<<i<<" "<<j<<" "<<" ";
+			for(double en = 0.001; en < maxval; en+= bin){
 				tmpen_far.push_back(prob->probabilityMatterExact(i,j,1,en,1300));//prob?
 				tmpen_near.push_back(prob->probabilityVacuumExact(i,j,1,en,0.525));//yj near detector is too far. .525 km?
-				s2<<tmpen_far.back()<<" ";
-				s1<<tmpen_near.back()<<" ";
+			//	s2<<tmpen_far.back()<<" ";
+			//	s1<<tmpen_near.back()<<" ";
 			}
-			s1<<"\n";
-			s2<<"\n";
+			//s1<<"\n";
+			//s2<<"\n";
 
 			tmp_near.push_back(tmpen_near);
 			tmp_far.push_back(tmpen_far);
@@ -283,18 +305,26 @@ int genDUNE::preCalculateProbs(){
 			std::vector<double> tmpen_nearbar;
 			std::vector<double> tmpen_farbar;
 
-			s3<<i<<" "<<j<<" "<<" ";
-			s4<<i<<" "<<j<<" "<<" ";
-
-			for(double en = 0.001; en < 50; en+= 0.01){
-				tmpen_farbar.push_back(prob->probabilityMatterExact(i,j,-1,en,1300));
-				tmpen_nearbar.push_back(prob->probabilityVacuumExact(i,j,-1,en,1.0));//yj near detector is too far. .525 km?
-
-				s4<<tmpen_farbar.back()<<" ";
-				s3<<tmpen_nearbar.back()<<" ";
+			//if its tau->XX dont bother;
+			if(( i==3 || i == 2 )  || (i==0 && j!=0 ) || (i==1 && j==3)  ){
+				 tmp_nearbar.push_back(tmpen_nearbar);
+				 tmp_farbar.push_back(tmpen_farbar);
+				 continue;
 			}
-			s3<<"\n";
-			s4<<"\n";
+
+
+	//		s3<<i<<" "<<j<<" "<<" ";
+	//		s4<<i<<" "<<j<<" "<<" ";
+
+			for(double en = 0.001; en < maxval; en+= bin){
+				tmpen_farbar.push_back(prob->probabilityMatterExact(i,j,-1,en,1300));
+				tmpen_nearbar.push_back(prob->probabilityVacuumExact(i,j,-1,en,0.525));//yj near detector is too far. .525 km?
+
+	//			s4<<tmpen_farbar.back()<<" ";
+	//			s3<<tmpen_nearbar.back()<<" ";
+			}
+	//		s3<<"\n";
+	///		s4<<"\n";
 
 
 

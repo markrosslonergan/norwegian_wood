@@ -188,7 +188,7 @@ int main(int argc, char* argv[])
     std::vector<double> mass_splittings = {7.5*pow(10,-5), 2.552*pow(10,-3),0};
     genDUNE bkg_only(xml); //yj genDUNE!
 
-    if(true){
+    if(false){
 	  bkg_only.loadPreCalculatedProbs("./");
     }else{
   	  bkg_only.prob = new SBNprob(4, angles, phases, mass_splittings);
@@ -509,8 +509,7 @@ int main(int argc, char* argv[])
         
     //std::cin.get();
         
-
-        
+ 
     std::vector<std::string> lineinfile;
         
     size_t pos = 0;
