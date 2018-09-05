@@ -206,6 +206,7 @@ int main(int argc, char* argv[])
 
   }
 
+
   else if(which_mode =="order"){
    
     std::ofstream dunestream;
@@ -360,7 +361,7 @@ int main(int argc, char* argv[])
       std::string process_line;
       std::string delimiter = "_";
       std::fstream datlist("/a/data/westside/yjwa/NW/DUNE_SBN_condor/condor_order/IOlist.txt");
-      std::fstream file("/a/data/westside/yjwa/NW/norwegian_wood/build/src/process_t14_t24_t34_d14.txt");
+      std::fstream file("/a/data/westside/yjwa/NW/norwegian_wood/process_t14_t24_t34_d14.txt");
       
       GotoLine(file,which_process+620);
       file >> process_line;      
@@ -409,10 +410,10 @@ int main(int argc, char* argv[])
           std::cout << "This is donejob" <<std::endl;
           exit(0);
       }
-      for (int i = 0 ; i< lineinfile.size() ; i++){
-          std::cout << "=== " << i << "-th element in process line is "  <<lineinfile.at(i) << std::endl;
+      //for (int i = 0 ; i< lineinfile.size() ; i++){
+      //  std::cout << "=== " << i << "-th element in process line is "  <<lineinfile.at(i) << std::endl;
           
-      }
+      //}
       TFile *fin = new TFile("/a/data/westside/yjwa/NW/norwegian_wood/covar/covariance_matrices_xcheck_1408x1408.root","read");
       TMatrixT<double> * m = (TMatrixT<double>*)fin->Get("TMatrixT<double>;1");
         
@@ -482,7 +483,12 @@ int main(int argc, char* argv[])
 
     std::fstream rootlist("/a/data/westside/yjwa/NW/DUNE_SBN_condor/condor_dm1ev/rootlist.txt");
         
-    std::fstream file("/a/data/westside/yjwa/NW/norwegian_wood/build/src/process_t14_t24_t34.txt");
+    std::fstream file("/a/data/westside/yjwa/NW/norwegian_wood/process_t14_t24_t34_d14.txt");
+
+    if (file.fail()){
+      std::cout << "file is null " << std::endl; 
+    }
+
     //std::fstream file("/Users/yeon-jaejwa/sandbox/NW/norwegian_wood/build/src/process_t14_t24_t34_d14.txt");
       
      
@@ -499,7 +505,7 @@ int main(int argc, char* argv[])
         
     file >> process_line;
         
-    std::cout << process_line;
+    std::cout << process_line << std::endl;
         
     //std::cin.get();
         
@@ -515,7 +521,9 @@ int main(int argc, char* argv[])
     std::string line;
         
     int after_process_num = 0;
-        
+
+    std::cout << process_line << std::endl;
+
     while( (pos = process_line.find(delimiter)) != std::string::npos) {
             
             
@@ -546,7 +554,7 @@ int main(int argc, char* argv[])
     while( std::getline (rootlist, line)){
       if(line.find(precalc_name) != std::string::npos){
 
-	donejob = true;
+	//donejob = true;
       }
 	    
     }
@@ -558,7 +566,7 @@ int main(int argc, char* argv[])
         
     for (int i = 0 ; i< lineinfile.size() ; i++){
         
-      std::cout << "=== " << i << "-th element in process line is "  <<lineinfile.at(i) << std::endl;
+    std::cout << "=== " << i << "-th element in process line is "  <<lineinfile.at(i) << std::endl;
             
             
     }
@@ -610,8 +618,15 @@ int main(int argc, char* argv[])
                                 
 	  std::string name = order_names.at(ord)+"_DCP_"+to_string_prec(dcp,3)+"_T23_"+to_string_prec(theta23.at(i23),3)+"_"+precalc_name;
 	  std::cout<<"GEN: on value "<<name<<std::endl;
-                    
+	  std::cout<<dcp<<" "<<ord<<std::endl;  
 	  genDUNE* testpt = new genDUNE(xml);//yj i was here
+
+	  testpt->loadPreCalculatedProbs("/a/data/westside/markross/norwegian_wood/build/src/");
+
+
+ 
+	  std::cout << "gen dune worked " <<std::endl; 
+
 	  phases.at(0) = dcp;
 	  angles.at(1) = theta23.at(i23);
                                 
@@ -625,10 +640,17 @@ int main(int argc, char* argv[])
 	  mass_splittings.at(2) = 1.0;
                     
 	  testpt->prob = new SBNprob(4,angles,phases, mass_splittings);
-	  testpt->preCalculateProbs();
+	  
+	  std::cout << "sbnprob worked" <<std::endl;
+
+	  //testpt->preCalculateProbs();
+
+	  std::cout << "pre calc" << std::endl; 
                     
 	  testpt->doMC(name);
-                    
+
+	  std::cout << "do MC worked  " << std::endl;
+          
 	  delete testpt;
 	}
       }
@@ -821,7 +843,7 @@ int main(int argc, char* argv[])
       std::fstream datlist("/a/data/westside/markross/DUNE_SBN_condor/order/datlistIO.txt");
      
  
-      std::fstream file("/a/data/westside/markross/norwegian_wood/build/src/process_t14_t24_t34_d14.txt");
+      std::fstream file("/a/data/westside/markross/norwegian_wood/process_t14_t24_t34_d14.txt");
       //std::fstream file("/a/data/westside/markross/DUNE_SBN_condor/order/makeup.list");
      
       //file.seekg(which_process-1); 
@@ -881,7 +903,7 @@ int main(int argc, char* argv[])
       while( std::getline (datlist, line)){
           if(line.find(precalc_name) != std::string::npos){
               
-	    donejob = true;
+	    //donejob = true;
           }
           
       }
@@ -891,9 +913,9 @@ int main(int argc, char* argv[])
           exit(0);
       }
       
-      for (int i = 0 ; i< lineinfile.size() ; i++){
-          std::cout << "=== " << i << "-th element in process line is "  <<lineinfile.at(i) << std::endl;
-      }
+      //for (int i = 0 ; i< lineinfile.size() ; i++){
+      //  std::cout << "=== " << i << "-th element in process line is "  <<lineinfile.at(i) << std::endl;
+      //}
 
       //std::ofstream dunestream;
       //dunestream.open ("DUNE_cpv3+1to3+0_NO_cpv4_testpoint.dat");
@@ -951,7 +973,7 @@ int main(int argc, char* argv[])
       std::fstream datlist("/a/data/westside/markross/DUNE_SBN_condor/order/datlistIO.txt");
      
  
-      std::fstream file("/a/data/westside/markross/norwegian_wood/build/src/process_t14_t24_t34_d14.txt");
+      std::fstream file("/a/data/westside/markross/norwegian_wood/process_t14_t24_t34_d14.txt");
       //std::fstream file("/a/data/westside/markross/DUNE_SBN_condor/order/makeup.list");
      
       //file.seekg(which_process-1);
@@ -1010,7 +1032,7 @@ int main(int argc, char* argv[])
       while( std::getline (datlist, line)){
           if(line.find(precalc_name) != std::string::npos){
               
-	    donejob = true;
+	    //donejob = true;
           }
           
       }
@@ -1020,9 +1042,9 @@ int main(int argc, char* argv[])
           exit(0);
       }
       
-      for (int i = 0 ; i< lineinfile.size() ; i++){
-          std::cout << "=== " << i << "-th element in process line is "  <<lineinfile.at(i) << std::endl;
-      }
+      //for (int i = 0 ; i< lineinfile.size() ; i++){
+      //  std::cout << "=== " << i << "-th element in process line is "  <<lineinfile.at(i) << std::endl;
+      //}
 
       //std::ofstream dunestream;
       //dunestream.open ("DUNE_cpv3+1to3+0_NO_cpv4_testpoint.dat");
@@ -1078,7 +1100,7 @@ int main(int argc, char* argv[])
       
       std::fstream datlist("/a/data/westside/yjwa/NW/DUNE_SBN_condor/condor_2/datlistIO.txt");
       
-      std::fstream file("/a/data/westside/yjwa/NW/norwegian_wood/build/src/process_t14_t24_t34_d14.txt");
+      std::fstream file("/a/data/westside/yjwa/NW/norwegian_wood/process_t14_t24_t34_d14.txt");
       //std::fstream file("/Users/yeon-jaejwa/sandbox/NW/norwegian_wood/build/src/process_t14_t24_t34_d14.txt");
      
       //file.seekg(which_process-1);
@@ -1141,7 +1163,7 @@ int main(int argc, char* argv[])
       while( std::getline (datlist, line)){
           if(line.find(precalc_name) != std::string::npos){
               
-	    donejob = true;
+	    //donejob = true;
           }
           
       }
@@ -1151,12 +1173,12 @@ int main(int argc, char* argv[])
           exit(0);
       }
       
-      for (int i = 0 ; i< lineinfile.size() ; i++){
+      //for (int i = 0 ; i< lineinfile.size() ; i++){
           
-          std::cout << "=== " << i << "-th element in process line is "  <<lineinfile.at(i) << std::endl;
+      //  std::cout << "=== " << i << "-th element in process line is "  <<lineinfile.at(i) << std::endl;
           
           
-      }
+      //}
 
       //std::ofstream dunestream;
       //dunestream.open ("DUNE_cpv3+1to3+0_NO_cpv4_testpoint.dat");
