@@ -188,7 +188,7 @@ int main(int argc, char* argv[])
     std::vector<double> mass_splittings = {7.5*pow(10,-5), 2.552*pow(10,-3),0};
     genDUNE bkg_only(xml); //yj genDUNE!
 
-    if(true){
+    if(false){
 	  bkg_only.loadPreCalculatedProbs("./");
     }else{
   	  bkg_only.prob = new SBNprob(4, angles, phases, mass_splittings);
@@ -621,7 +621,7 @@ int main(int argc, char* argv[])
 	  std::cout<<dcp<<" "<<ord<<std::endl;  
 	  genDUNE* testpt = new genDUNE(xml);//yj i was here
 
-	  testpt->loadPreCalculatedProbs("/a/data/westside/markross/norwegian_wood/build/src/");
+	  //testpt->loadPreCalculatedProbs("/a/data/westside/markross/norwegian_wood/build/src/");
 
 
  
@@ -643,7 +643,7 @@ int main(int argc, char* argv[])
 	  
 	  std::cout << "sbnprob worked" <<std::endl;
 
-	  //testpt->preCalculateProbs();
+	  testpt->preCalculateProbs();
 
 	  std::cout << "pre calc" << std::endl; 
                     
