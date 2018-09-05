@@ -509,8 +509,7 @@ int main(int argc, char* argv[])
         
     //std::cin.get();
         
-
-        
+ 
     std::vector<std::string> lineinfile;
         
     size_t pos = 0;
