@@ -49,15 +49,13 @@ using namespace sbn;
 
 #include <limits>
 
-std::fstream& GotoLine(std::fstream& file, unsigned int num){
+std::ifstream& GotoLine(std::ifstream& file, unsigned int num){
   file.seekg(std::ios::beg);
   for(int i=0; i < num - 1; ++i){
     file.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
   }
   return file;
 }
-
-
 
 
 /*************************************************************
@@ -360,8 +358,8 @@ int main(int argc, char* argv[])
    
       std::string process_line;
       std::string delimiter = "_";
-      std::fstream datlist("/a/data/westside/yjwa/NW/DUNE_SBN_condor/condor_order/IOlist.txt");
-      std::fstream file("/a/data/westside/yjwa/NW/norwegian_wood/process_t14_t24_t34_d14.txt");
+      std::ifstream datlist("/a/data/westside/yjwa/NW/DUNE_SBN_condor/condor_order/IOlist.txt");
+      std::ifstream file("/a/data/westside/yjwa/NW/norwegian_wood/process_t14_t24_t34_d14.txt");
       
       GotoLine(file,which_process+620);
       file >> process_line;      
@@ -481,9 +479,9 @@ int main(int argc, char* argv[])
     std::string process_line;
     std::string delimiter = "_";
 
-    std::fstream rootlist("/a/data/westside/yjwa/NW/DUNE_SBN_condor/condor_dm1ev/rootlist.txt");
+    std::ifstream rootlist("/a/data/westside/yjwa/NW/DUNE_SBN_condor/condor_dm1ev/rootlist.txt");
         
-    std::fstream file("/a/data/westside/yjwa/NW/norwegian_wood/process_t14_t24_t34_d14.txt");
+    std::ifstream file("/a/data/westside/yjwa/NW/norwegian_wood/process_t14_t24_t34_d14.txt");
 
     if (file.fail()){
       std::cout << "file is null " << std::endl; 
@@ -846,10 +844,10 @@ int main(int argc, char* argv[])
       std::string process_line;
       std::string delimiter = "_";
       
-      std::fstream datlist("/a/data/westside/markross/DUNE_SBN_condor/order/datlistIO.txt");
+      std::ifstream datlist("/a/data/westside/markross/DUNE_SBN_condor/order/datlistIO.txt");
      
  
-      std::fstream file("/a/data/westside/markross/norwegian_wood/process_t14_t24_t34_d14.txt");
+      std::ifstream file("/a/data/westside/markross/norwegian_wood/process_t14_t24_t34_d14.txt");
       //std::fstream file("/a/data/westside/markross/DUNE_SBN_condor/order/makeup.list");
      
       //file.seekg(which_process-1); 
@@ -976,10 +974,10 @@ int main(int argc, char* argv[])
       std::string process_line;
       std::string delimiter = "_";
       
-      std::fstream datlist("/a/data/westside/markross/DUNE_SBN_condor/order/datlistIO.txt");
+      std::ifstream datlist("/a/data/westside/markross/DUNE_SBN_condor/order/datlistIO.txt");
      
  
-      std::fstream file("/a/data/westside/markross/norwegian_wood/process_t14_t24_t34_d14.txt");
+      std::ifstream file("/a/data/westside/markross/norwegian_wood/process_t14_t24_t34_d14.txt");
       //std::fstream file("/a/data/westside/markross/DUNE_SBN_condor/order/makeup.list");
      
       //file.seekg(which_process-1);
@@ -1104,9 +1102,9 @@ int main(int argc, char* argv[])
       std::string process_line;
       std::string delimiter = "_";
       
-      std::fstream datlist("/a/data/westside/yjwa/NW/DUNE_SBN_condor/condor_2/datlistIO.txt");
+      std::ifstream datlist("/a/data/westside/yjwa/NW/DUNE_SBN_condor/condor_2/datlistIO.txt");
       
-      std::fstream file("/a/data/westside/yjwa/NW/norwegian_wood/process_t14_t24_t34_d14.txt");
+      std::ifstream file("/a/data/westside/yjwa/NW/norwegian_wood/process_t14_t24_t34_d14.txt");
       //std::fstream file("/Users/yeon-jaejwa/sandbox/NW/norwegian_wood/build/src/process_t14_t24_t34_d14.txt");
      
       //file.seekg(which_process-1);
