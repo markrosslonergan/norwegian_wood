@@ -38,7 +38,7 @@ int genDUNE::fillHistograms(int file, int uni, double wei){
 		//std::cout<<oscillation_patterns.at(file).first<<" "<<oscillation_patterns.at(file).second<<std::endl;	
 
 		//0 near 1 far
-		if(near_or_far.at(file)==0){
+		if(near_or_far[file]==0){
 			oscprob = interpolate_prob_near(oscillation_pattern->first, oscillation_pattern->second, Enu_true);
 		}else{
 			oscprob = interpolate_prob_far(oscillation_pattern->first, oscillation_pattern->second, Enu_true);
