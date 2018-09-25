@@ -60,10 +60,10 @@ int genDUNE::fillHistograms(int file, int uni, double wei){
 	//std::cout<<Enu_true<<" "<<Enu_reco<<" on file: "<<multisim_name.at(file)<<" "<<nutype<<" PROB: "<<oscprob_far<<std::endl;
 	//std::cout<<"Map Hist: "<<map_hist[multisim_name.at(file)]<<std::endl;
 
-	int m1 = map_hist_vec.at(file);
+	int m1 = map_hist_vec[file];
 	//int m2 = map_hist_vec_near.at(file);
 
-	hist.at(m1).Fill(Enu_reco, oscprob*weight*far_detector_weight);
+	hist[m1].Fill(Enu_reco, oscprob*weight*far_detector_weight);
 	//hist.at(m2).Fill(Enu_reco, oscprob_near*weight*near_detector_weight);
 
 //	hist.at(map_hist[multisim_name.at(file)]).Fill(Enu_reco, oscprob_far*weight*far_detector_weight);
@@ -86,12 +86,12 @@ double genDUNE::interpolate_prob_far(int a, int b, double enu){
 
 	if(a<0 && b<0 ){
 		//		std::cout<<"INV2: "<<-a-1<<" "<<-b-1<<" anti "<<std::endl;
-		p1 = precalc_prob_farbar.at(-a-1).at(-b-1).at(rnd);
-		p2 = precalc_prob_farbar.at(-a-1).at(-b-1).at(rnd+1);
+		p1 = precalc_prob_farbar[-a-1][-b-1][rnd];
+		p2 = precalc_prob_farbar[-a-1][-b-1][rnd+1];
 	}else{
 		//		std::cout<<"INV2: "<<a-1<<" "<<b-1<<" nuetrino "<<std::endl;
-		p1 = precalc_prob_far.at(a-1).at(b-1).at(rnd);
-		p2 = precalc_prob_far.at(a-1).at(b-1).at(rnd+1);
+		p1 = precalc_prob_far[a-1][b-1][rnd];
+		p2 = precalc_prob_far[a-1][b-1][rnd+1];
 	}
 
 
@@ -112,11 +112,11 @@ double genDUNE::interpolate_prob_near(int a, int b, double enu){//yj
 	double p1,p2;
 
 	if(a<0 && b < 0){
-		p1 = precalc_prob_nearbar.at(-a-1).at(-b-1).at(rnd);
-		p2 = precalc_prob_nearbar.at(-a-1).at(-b-1).at(rnd+1);
+		p1 = precalc_prob_nearbar[-a-1][-b-1][rnd];
+		p2 = precalc_prob_nearbar[-a-1][-b-1][rnd+1];
 	}else{
-		p1 = precalc_prob_near.at(a-1).at(b-1).at(rnd);
-		p2 = precalc_prob_near.at(a-1).at(b-1).at(rnd+1);
+		p1 = precalc_prob_near[a-1][b-1][rnd];
+		p2 = precalc_prob_near[a-1][b-1][rnd+1];
 	}
 
 	double e1 = (double)rnd*bin;
