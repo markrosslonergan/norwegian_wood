@@ -572,13 +572,13 @@ int main(int argc, char* argv[])
         
     std::cout << precalc_name << std::endl;
         
-    std::vector<double> angles = {33.6, 42.1, 8.5, 0,0,0};//6 mixing angles
-    std::vector<double> angles_oct = {33.6, 49.6, 8.5, 0,0,0};//dif octant
+    std::vector<double> angles = {34.5, 0, 8.45, 0,0,0};//6 mixing angles
+    //std::vector<double> angles_oct = {33.6, 49.6, 8.5, 0,0,0};//dif octant
     std::vector<double> phases = {0,0,0};
-    std::vector<double> phases_180 = {180,0,0};
+    //std::vector<double> phases_180 = {180,0,0};
     //http://lbne2-docdb.fnal.gov/cgi-bin/RetrieveFile?docid=10688&filename=DUNE-CDR-physics-volume.pdf&version=10
-    std::vector<double> mass_splittings = {7.5*pow(10,-5), 2.457*pow(10,-3),0};
-    std::vector<double> mass_splittings_inv = {7.5*pow(10,-5), -2.449*pow(10,-3),0};
+    std::vector<double> mass_splittings = {7.55*pow(10,-5), 2.50*pow(10,-3),0};
+    std::vector<double> mass_splittings_inv = {7.55*pow(10,-5), -2.42*pow(10,-3),0};
       
         
     TFile *fin = new TFile("/a/data/westside/yjwa/NW/norwegian_wood/covar/covariance_matrices_xcheck_1408x1408.root","read");
@@ -589,7 +589,7 @@ int main(int argc, char* argv[])
         
     //std::vector<double> theta23 = {40,41,42,43,44,45,46,47,48,49,50,51,52};
     //std::vector<double> theta
-    std::vector<double> theta23 = {38,40,42,44,45,46,47,49,51,53};
+    std::vector<double> theta23 = {40.8, 41.8, 42.8, 43.8, 45., 45.8, 46.8, 47.8, 48.8, 49.8, 50.8};
         
     double t14=10000;
     double t24=10000;
@@ -604,9 +604,16 @@ int main(int argc, char* argv[])
     d14 = std::stod(lineinfile.at(8));
 
 
-    for(double dcp = 0; dcp<=360; dcp+=15){//
+    //for(double dcp = 0; dcp<=360; dcp+=15){//
+    for(double dcp =0; dcp <360; dcp += 30){
       //for (double dcp = 0; dcp<=360; dcp+=180){//yj
       for(int ord = 0; ord<2; ord++){
+	
+	if (ord == 1){
+	  //angles.at(0) = ;
+	  angles.at(2) = 8.53;
+	}
+
 	for(int i23 =0; i23 < theta23.size(); i23++){
           
           
