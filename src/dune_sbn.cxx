@@ -193,8 +193,6 @@ int main(int argc, char* argv[])
   	  bkg_only.preCalculateProbs();
     }
 
-
-
     bkg_only.doMC("three_neutrino");
     bkg_only.writeOut("three_neutrino.root");
 
