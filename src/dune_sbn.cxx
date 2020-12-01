@@ -181,7 +181,7 @@ int main(int argc, char* argv[])
     std::cout<<" Starting Default Mode: "<<std::endl;
     //*************************************************************************//
     //*************************************************************************//
-    std::vector<double> angles = {30, 44, 8, 0,0,0};
+    std::vector<double> angles = {33.6, 42.1, 8.5,0,0,0};
     std::vector<double> phases = {0,0,0};
     std::vector<double> mass_splittings = {7.5*pow(10,-5), 2.552*pow(10,-3),0};
     genDUNE bkg_only(xml); //yj genDUNE!
